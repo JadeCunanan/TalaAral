@@ -1,0 +1,8 @@
+# The absolute essentials
+.env
+/backend/vendor/
+
+# Optional but keeps your VS Code clean
+.vscode/
+
+talaaral_rtu_cache.json

@@ -1,0 +1,446 @@
+/* ═══════════════════════════════════════════════════
+   PROGRAM TABS — matches .filter-btn style exactly
+═══════════════════════════════════════════════════ */
+.program-tabs-wrap {
+  margin-bottom: 0;
+}
+
+.program-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.program-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.program-tab:hover {
+  border-color: var(--navy-bright);
+  color: var(--navy-bright);
+}
+
+.program-tab.active {
+  background: var(--navy-bright);
+  border-color: var(--navy-bright);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════
+   ACCORDION
+═══════════════════════════════════════════════════ */
+.accordion-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.accordion-skeleton {
+  height: 64px;
+  border-radius: 14px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, #e2e8f0) 25%,
+    var(--skeleton-shine, #f1f5f9) 50%,
+    var(--skeleton-base, #e2e8f0) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Accordion Item ── */
+.accordion-item {
+  border-radius: 14px;
+  border: 1.5px solid var(--border-color);
+  background: var(--glass-bg);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  margin-bottom: 0.35rem;
+}
+
+.accordion-item:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+}
+
+.accordion-item.open {
+  border-color: var(--navy-bright);
+  box-shadow: 0 4px 20px rgba(0, 82, 255, 0.08);
+}
+
+/* ── Accordion Header ── */
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+  gap: 1rem;
+}
+
+.accordion-header:hover {
+  background: var(--glass-bg);
+}
+
+.acc-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.acc-folder-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 82, 255, 0.07);
+  color: var(--navy-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+/* Show closed folder by default, open when .open */
+.acc-folder-icon .fa-folder-open {
+  display: none;
+}
+.accordion-item.open .acc-folder-icon .fa-folder {
+  display: none;
+}
+.accordion-item.open .acc-folder-icon .fa-folder-open {
+  display: block;
+}
+.accordion-item.open .acc-folder-icon {
+  background: var(--navy-bright);
+  color: #fff;
+}
+
+.acc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+/* Course name uses title font */
+.acc-course-name {
+  font-family: var(--font-body); /* Momo Trust Display */
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Program badge uses body font */
+.acc-program-badge {
+  display: inline-block;
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(0, 82, 255, 0.07);
+  color: var(--navy-bright);
+  width: fit-content;
+}
+
+.acc-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* File count uses body font */
+.acc-count {
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.acc-chevron {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  transition: transform 0.25s ease;
+}
+
+.accordion-item.open .acc-chevron {
+  transform: rotate(180deg);
+}
+
+/* ── Accordion Body ── */
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.35s ease,
+    padding 0.25s ease;
+  padding: 0 1.25rem;
+}
+
+.accordion-item.open .accordion-body {
+  max-height: 2000px;
+  padding: 0 1.25rem 1.25rem;
+}
+
+/* ── Resources Grid inside accordion ── */
+.accordion-body .resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* ── Resource Card ── */
+.resource-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--navy);
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s,
+    border-color 0.25s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.resource-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.resource-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(0, 82, 255, 0.2);
+}
+
+.resource-card:hover::before {
+  opacity: 1;
+}
+
+/* Top accent by type */
+.resource-card:has(.type-pdf)::before {
+  background: #ef4444;
+}
+.resource-card:has(.type-word)::before {
+  background: #2563eb;
+}
+.resource-card:has(.type-ppt)::before {
+  background: #f97316;
+}
+.resource-card:has(.type-excel)::before {
+  background: #10b981;
+}
+.resource-card:has(.type-image)::before {
+  background: #8b5cf6;
+}
+.resource-card:has(.type-video)::before {
+  background: #ec4899;
+}
+.resource-card:has(.type-file)::before {
+  background: var(--navy-bright);
+}
+
+/* ── File Icon ── */
+.rc-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.rc-icon.type-pdf {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.rc-icon.type-word {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+.rc-icon.type-ppt {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+.rc-icon.type-excel {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+.rc-icon.type-image {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+.rc-icon.type-video {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+}
+.rc-icon.type-audio {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+.rc-icon.type-zip {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+.rc-icon.type-file {
+  background: rgba(0, 82, 255, 0.08);
+  color: var(--navy-bright);
+}
+
+/* ── Card Body ── */
+.rc-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* File title uses body font (readable, not decorative) */
+.rc-title {
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rc-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Type badge — Inter */
+.rc-badge {
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.rc-badge.type-pdf {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.rc-badge.type-word {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+.rc-badge.type-ppt {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+.rc-badge.type-excel {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+.rc-badge.type-image {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+.rc-badge.type-video {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+}
+.rc-badge.type-audio {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+.rc-badge.type-zip {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+.rc-badge.type-file {
+  background: rgba(0, 82, 255, 0.08);
+  color: var(--navy-bright);
+}
+
+/* File size — Inter */
+.rc-size {
+  font-family: var(--font-body); /* Inter */
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.rc-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(0, 82, 255, 0.06);
+  color: var(--navy-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.resource-card:hover .rc-action {
+  background: var(--navy-bright);
+  color: #fff;
+  transform: translateY(-1px);
+}

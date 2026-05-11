@@ -1,0 +1,583 @@
+/* ============================================================
+   TalaAral Calendar CSS 
+============================================================ */
+
+/* ── 1. PREVENT FLEXBOX BLOWOUT ── */
+.main-wrap {
+  min-width: 0;
+}
+
+/* ── 2. PAGE HEADER (Matched to tasks.css) ── */
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-family: var(--font-title);
+  font-size: 2.2rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  /* This changes it to gray! */
+  font-size: 0.95rem;
+}
+
+.calendar-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.cal-title {
+  font-family: var(--font-title) !important;
+  color: var(--navy);
+  font-size: 1.85rem;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.cal-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.cal-nav button {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--navy);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.cal-nav button:hover {
+  border-color: var(--navy-bright);
+  color: var(--navy-bright);
+  box-shadow: 0 4px 12px rgba(0, 82, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
+}
+
+.cal-day-name {
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-bottom: 12px;
+  font-family: var(--font-body);
+}
+
+.cal-cell {
+  /* PREVENT GRID CELL BLOWOUT */
+  min-width: 0;
+
+  min-height: 110px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.cal-cell:hover {
+  border-color: rgba(0, 82, 255, 0.4);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  background: var(--glass-bg);
+}
+
+.cal-cell.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.cal-cell.empty:hover {
+  box-shadow: none;
+  transform: none;
+  background: transparent;
+}
+
+.cal-cell.today {
+  border: 2px solid var(--gold);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.cal-date {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+  font-size: 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.today-badge {
+  font-size: 0.65rem;
+  background: var(--gold);
+  color: var(--navy);
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   MINIMALIST EVENT PILLS 
+============================================================ */
+.cal-events-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cal-evt {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+}
+
+.cal-evt::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.evt-high::before {
+  background: var(--red);
+}
+
+.evt-medium::before {
+  background: var(--gold-dark);
+}
+
+.evt-low::before {
+  background: var(--green);
+}
+
+.evt-update::before {
+  background: var(--navy-bright);
+}
+
+.evt-completed::before {
+  background: var(--border-color);
+}
+
+.cal-more-link {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   FOOLPROOF MODAL OVERRIDES
+============================================================ */
+#dayModal.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 26, 51, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+#dayModal.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#dayModal .modal-card {
+  background: var(--bg-main);
+  width: 100%;
+  max-width: 560px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 24px 48px rgba(0, 26, 51, 0.15);
+  padding: 40px;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+#dayModal.modal-overlay.active .modal-card {
+  transform: translateY(0) scale(1);
+}
+
+#dayModal .close-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 38px;
+  height: 38px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+#dayModal .close-btn:hover {
+  background: var(--red);
+  color: white;
+  border-color: var(--red);
+  transform: rotate(90deg);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+#dayModal .modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-right: 40px;
+}
+
+#dayModalTitle {
+  font-family: var(--font-title) !important;
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: -0.3px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#dayModalTitle i {
+  color: var(--navy-bright);
+}
+
+.day-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.day-details::-webkit-scrollbar {
+  width: 6px;
+}
+
+.day-details::-webkit-scrollbar-thumb {
+  background: rgba(0, 26, 51, 0.15);
+  border-radius: 10px;
+}
+
+.detail-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color);
+  padding: 20px 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-left: 5px solid var(--border-color);
+}
+
+.detail-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 26, 51, 0.08);
+  transform: translateY(-4px);
+  background: #ffffff;
+  border-color: rgba(0, 82, 255, 0.2);
+}
+
+.detail-card.announce {
+  border-left-color: var(--navy-bright);
+}
+
+.detail-card.high {
+  border-left-color: var(--red);
+}
+
+.detail-card.medium {
+  border-left-color: var(--gold);
+}
+
+.detail-card.low {
+  border-left-color: var(--green);
+}
+
+.detail-card.completed {
+  border-left-color: var(--border-color);
+  opacity: 0.65;
+}
+
+.dc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dc-title {
+  margin: 0;
+  color: var(--navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+  font-family: var(--font-body);
+}
+
+.dc-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dc-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.dc-badge {
+  font-size: 0.7rem;
+  padding: 5px 12px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+  width: fit-content;
+  letter-spacing: 0.5px;
+}
+
+.dc-time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.badge-announce {
+  background: var(--navy-bright);
+  color: white;
+}
+
+.badge-pending {
+  background: rgba(0, 26, 51, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.badge-completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green);
+}
+
+.calendar-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+
+/* ============================================================
+   MOBILE RESPONSIVENESS (The iOS Calendar Trick)
+============================================================ */
+
+@media (max-width: 960px) {
+  .calendar-wrapper {
+    padding: 24px;
+  }
+
+  .cal-grid {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  /* ── ADDED: HEADER FONT SCALING (Matches tasks.css) ── */
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .page-header p {
+    font-size: 0.85rem;
+  }
+
+  .calendar-wrapper {
+    padding: 20px 12px;
+  }
+
+  .cal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .cal-title {
+    font-size: 1.5rem;
+  }
+
+  .cal-grid {
+    gap: 4px;
+  }
+
+  .cal-day-name {
+    font-size: 0.65rem;
+    padding-bottom: 8px;
+  }
+
+  .cal-cell {
+    min-height: 70px;
+    padding: 6px 4px;
+    gap: 4px;
+  }
+
+  .cal-date {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .today-badge {
+    font-size: 0.5rem;
+    padding: 2px 4px;
+  }
+
+  /* The Dot System: Hide text on mobile, rely on colored dots */
+  .cal-events-wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-start;
+  }
+
+  .cal-evt {
+    padding: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    justify-content: center;
+  }
+
+  .cal-evt span {
+    display: none;
+  }
+
+  .cal-evt::before {
+    width: 100%;
+    height: 100%;
+  }
+
+  .cal-more-link {
+    font-size: 0.6rem;
+    width: 100%;
+    text-align: left;
+    margin-left: 2px;
+  }
+
+  #dayModal .modal-card {
+    margin: 0 16px;
+    padding: 24px 16px;
+    max-height: 90vh;
+  }
+
+  #dayModal .modal-header {
+    padding-right: 32px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+  }
+
+  #dayModalTitle {
+    font-size: 1.25rem;
+  }
+
+  .detail-card {
+    padding: 16px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .dc-status {
+    width: 100%;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

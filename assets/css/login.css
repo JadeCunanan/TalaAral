@@ -1,0 +1,584 @@
+/* --- 1. DESIGN TOKENS & VARIABLES --- */
+:root {
+  /* Color System */
+  --bg-main: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-visual: #f1f5f9;
+
+  --accent-blue: #2563eb;
+  --accent-dark: #1d4ed8;
+  --accent-light: #eff6ff;
+
+  --rtu-gold: #b59400;
+  --rtu-gold-muted: rgba(181, 148, 0, 0.1);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --status-error: #ef4444;
+  --status-success: #22c55e;
+
+  /* Functional Colors */
+  --input-border: #e2e8f0;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 1);
+
+  /* Typography */
+  --font-display: "Momo Trust Display", sans-serif;
+  --font-sans: "Inter", sans-serif;
+
+  /* Shadows & Effects */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- 2. GLOBAL RESET --- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  line-height: 1.5;
+  background-color: var(--bg-main);
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+/* --- 3. BACK TO HOME BUTTON --- */
+.btn-back {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--input-border);
+  border-radius: 99px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+}
+
+.btn-back i {
+  font-size: 0.8rem;
+  transition: transform 0.25s ease;
+}
+
+.btn-back:hover {
+  background-color: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btn-back:hover i {
+  transform: translateX(-3px);
+}
+
+/* --- 4. LAYOUT STRUCTURE --- */
+.split-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* --- 5. VISUAL SIDE (LEFT) --- */
+.visual-side {
+  flex: 1;
+  background-color: var(--bg-visual);
+  background-image:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.05),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(181, 148, 0, 0.05),
+      transparent 40%
+    );
+  display: flex;
+  align-items: center;
+  padding: 0 8%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Decoration for depth */
+.visual-side::after {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="0.5" fill="%232563eb" opacity="0.1"/></svg>');
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+.visual-depth-card {
+  position: relative;
+  z-index: 10;
+  animation: slideUpFade 0.8s var(--bounce);
+}
+
+.logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.logo span {
+  color: var(--accent-blue);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--accent-light);
+  color: var(--accent-blue);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+.visual-depth-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  line-height: 1.05;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+.highlight {
+  color: var(--rtu-gold);
+  position: relative;
+}
+
+.visual-depth-card p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 480px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+.mini-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.m-feat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.m-feat i {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- 6. FORM SIDE (RIGHT) --- */
+.form-side {
+  flex: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background-color: var(--bg-main);
+}
+
+.glass-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 3rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  animation: slideInRight 0.8s ease-out;
+}
+
+.form-header {
+  margin-bottom: 32px;
+}
+
+.form-header h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.form-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* --- 7. INPUT STYLES --- */
+.input-group {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+input {
+  width: 100%;
+  background-color: var(--bg-subtle);
+  border: 1.5px solid var(--input-border);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+#togglePass {
+  transition: color 0.2s;
+  padding: 10px;
+}
+
+#togglePass:hover {
+  color: var(--accent-blue) !important;
+}
+
+/* --- 8. BUTTONS & LINKS --- */
+.forgot-link {
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  padding: 4px 0;
+}
+
+.forgot-link:hover {
+  color: var(--accent-blue);
+  text-decoration: underline;
+}
+
+.btn-main {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--accent-blue);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s var(--bounce);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.btn-main:hover {
+  background-color: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+
+.btn-main:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  width: 100%;
+}
+
+.btn-ghost:hover {
+  color: var(--accent-blue);
+  text-decoration: underline;
+}
+
+.signin-link {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.signin-link a {
+  color: var(--accent-blue);
+  font-weight: 700;
+  padding: 4px;
+}
+
+/* --- 9. MODALS --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  padding: 1rem;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-card {
+  background-color: var(--bg-main);
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem;
+  border-radius: 28px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(20px);
+  transition: all 0.4s var(--bounce);
+  border: 1px solid var(--input-border);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-overlay.active .modal-card {
+  transform: translateY(0);
+}
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.modal-icon.success { background: #f0fdf4; color: var(--status-success); }
+.modal-icon.error   { background: #fef2f2; color: var(--status-error); }
+.modal-icon.info    { background: var(--accent-light); color: var(--accent-blue); }
+
+.modal-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.modal-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* --- 10. ANIMATIONS --- */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* --- 11. RESPONSIVE --- */
+@media (max-width: 1024px) {
+  .visual-side {
+    padding: 0 5%;
+  }
+  .visual-depth-card h1 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 850px) {
+  .split-wrapper {
+    flex-direction: column;
+  }
+
+  .visual-side {
+    padding: 56px 40px 48px 40px;
+    min-height: auto;
+    flex: 0 0 auto;
+  }
+
+  .visual-depth-card p {
+    margin-bottom: 32px;
+  }
+
+  .form-side {
+    padding: 48px 40px 80px 40px;
+    min-height: auto;
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .glass-card {
+    max-width: 100%;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .visual-side {
+    padding: 64px 24px 40px 24px;
+  }
+
+  .logo-wrapper {
+    margin-bottom: 32px;
+  }
+
+  .visual-depth-card h1 {
+    font-size: 2.2rem;
+    margin-bottom: 24px;
+    line-height: 1.15;
+  }
+
+  .visual-depth-card p {
+    font-size: 1.05rem;
+    margin-bottom: 32px;
+  }
+
+  .mini-features {
+    gap: 20px;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 8px 14px;
+    white-space: normal;
+    line-height: 1.5;
+  }
+
+  .form-side {
+    padding: 40px 24px 64px 24px;
+  }
+
+  .form-header {
+    margin-bottom: 40px;
+  }
+
+  .form-header h2 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+
+  .input-group {
+    margin-bottom: 28px;
+  }
+
+  .modal-card {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .btn-back span {
+    display: none;
+  }
+
+  .btn-back {
+    padding: 10px 14px;
+  }
+}

@@ -1,0 +1,322 @@
+.main-wrap {
+  min-width: 0;
+}
+
+.profile-header {
+  margin-bottom: 24px;
+  padding: 0 10px;
+  max-width: 1200px; /* Constrains header to match grid */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr; /* Slightly slimmer left column */
+  gap: 28px; /* Tighter gap for better visual unity */
+  align-items: start;
+  max-width: 1200px; /* Prevents ultra-wide stretching */
+  margin: 0 auto; /* Centers the grid */
+}
+
+.left-column-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  /* THE MAGIC: Sticks the card to the screen when scrolling */
+  position: sticky;
+  top: 100px;
+}
+
+/* ── Integrated Profile Details List ── */
+.profile-details-list {
+    width: 100%;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.pd-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pd-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(0, 82, 255, 0.06);
+    color: var(--navy-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.pd-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.pd-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.pd-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+/* ── Identity Card (Visual Editor) ── */
+.identity-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px; /* Refined padding */
+}
+
+.avatar-editor-wrap {
+  position: relative;
+  cursor: pointer;
+  border-radius: 50%;
+  margin-bottom: 24px;
+  display: block;
+}
+
+.profile-avatar-large {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy-bright), #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 5px solid #fff;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.avatar-initial {
+  font-family: var(--font-title);
+  font-size: 3.5rem;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-editor-wrap:hover .profile-avatar-large {
+  transform: scale(1.04);
+  box-shadow: 0 12px 24px rgba(0, 82, 255, 0.2);
+}
+
+.profile-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 26, 51, 0.75);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  backdrop-filter: blur(2px);
+}
+
+.edit-overlay i {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+.avatar-editor-wrap:hover .edit-overlay {
+  opacity: 1;
+}
+
+.user-title {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  color: var(--navy);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.user-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  background: rgba(0, 82, 255, 0.05);
+  padding: 5px 14px;
+  border-radius: 50px;
+  display: inline-block;
+}
+
+/* ── Settings Area ── */
+.settings-content-card {
+  padding: 40px;
+}
+.form-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-dark {
+  background: var(--navy);
+}
+.btn-dark:hover {
+  background: #000;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.qf-field input,
+.qf-row input {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+/* ── Cropper Modal ── */
+.crop-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 26, 51, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.crop-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.crop-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+.crop-modal-overlay.active .crop-modal {
+  transform: translateY(0);
+}
+
+.crop-container {
+  width: 100%;
+  height: 350px;
+  background: #f8fafc;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.crop-container img {
+  display: block;
+  max-width: 100%;
+}
+
+.crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.btn-cancel {
+  background: #e2e8f0;
+  color: #475569;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+/* ════════════════════════════════
+   RESPONSIVE ENHANCEMENTS
+════════════════════════════════ */
+@media (max-width: 960px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+  .left-column-stack {
+    position: relative;
+    top: 0; /* Disables sticky on mobile so it doesn't break scrolling */
+  } 
+}
+
+@media (max-width: 600px) {
+  /* Force side-by-side forms into a single vertical column */
+  .qf-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .profile-header h1 {
+    font-size: 1.8rem !important; /* Scale down the main title */
+  }
+  
+  /* Give the content breathing room */
+  .settings-content-card {
+    padding: 24px 16px;
+  }
+  
+  .identity-card {
+    padding: 32px 16px;
+  }
+  
+  /* Full-width tap targets for save buttons */
+  .form-actions {
+    justify-content: center;
+  }
+  .form-actions .btn-main {
+    width: 100%;
+    justify-content: center;
+  }
+}

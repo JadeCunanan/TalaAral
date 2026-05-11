@@ -1,0 +1,25 @@
+RewriteEngine On
+RewriteBase /
+
+Options -Indexes
+
+# 2. Root URL
+RewriteRule ^$ views/index.php [L]
+
+# 3. Serve real files/folders directly (THIS must catch /views/reset_password.php)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 4. Clean URLs (extensionless) — only for paths NOT already under /views/
+RewriteCond %{REQUEST_URI} !^/views/
+RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
+RewriteRule ^([^/.]+)$ views/$1.php [L]
+
+# 5. PHP fallback — only for paths NOT already under /views/
+RewriteCond %{REQUEST_URI} !^/views/
+RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
+RewriteRule ^([^/.]+)\.php$ views/$1.php [L]
+
+# 6. 404 fallback
+ErrorDocument 404 /index

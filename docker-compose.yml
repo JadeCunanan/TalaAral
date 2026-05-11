@@ -1,0 +1,57 @@
+services:
+  web:
+    build: .
+    container_name: talaaral_web
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+    env_file:
+      - .env
+    networks:
+      - talaaral_network
+      - canvas_network
+    depends_on:
+      - db
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: talaaral_pma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: talaaral_db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
+    networks:
+      - talaaral_network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: talaaral_db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - talaaral_network
+
+networks:
+  talaaral_network:
+    driver: bridge
+  canvas_network:
+    external: true
+    name: canvas-lms_default
+
+volumes:
+  db_data:

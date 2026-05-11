@@ -1,0 +1,8 @@
+{
+    "name": "talaaral/backend",
+    "description": "project",
+    "require": {
+        "simplepie/simplepie": "^1.9",
+        "phpmailer/phpmailer": "^7.0"
+    }
+}
