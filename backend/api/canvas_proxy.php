@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $api_token = getenv('CANVAS_API_TOKEN');
 // Grab the dynamic Canvas URL from your .env
-$canvas_base_url = getenv('CANVAS_BASE_URL'); 
+$canvas_base_url = getenv('CANVAS_BASE_URL');
 
 $file_url  = $_GET['url']      ?? '';
 $filename  = $_GET['filename'] ?? '';
@@ -39,14 +39,16 @@ $internal_canvas_host = parse_url($canvas_base_url, PHP_URL_HOST);
 // Works for both local (canvas-lms-web-1) and deployed (ngrok/tunnel URLs)
 $ngrok_host = parse_url($canvas_base_url, PHP_URL_HOST);
 
+// All internal Canvas hostnames that need to be replaced with the ngrok host
+$internal_hosts = ['canvas.docker', 'canvas-lms-web-1', 'localhost:3000', 'localhost'];
+
 for ($i = 0; $i < $max_redirects; $i++) {
-    
-    // PHYSICAL ROUTING: Dynamically translate local domains to the internal network host.
-    // If deployed with a Cloudflare tunnel, it just uses the tunnel URL directly!
-    $physical_url = str_replace(['localhost:3000', 'localhost', 'canvas.docker'], $internal_canvas_host, $target_url);
+
+    // PHYSICAL ROUTING: Translate all internal hostnames to the ngrok/tunnel host
+    $physical_url = str_replace($internal_hosts, $ngrok_host, $target_url);
 
     $ch = curl_init($physical_url);
-    
+
     $headers = [
         "Authorization: Bearer {$api_token}",
         "Host: {$ngrok_host}",              // Dynamically uses ngrok/tunnel domain from .env
@@ -56,7 +58,7 @@ for ($i = 0; $i < $max_redirects; $i++) {
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HEADER         => true,
-        CURLOPT_FOLLOWLOCATION => false, 
+        CURLOPT_FOLLOWLOCATION => false,
         CURLOPT_HTTPHEADER     => $headers,
         CURLOPT_TIMEOUT        => 30,
         CURLOPT_SSL_VERIFYPEER => false,
@@ -65,24 +67,28 @@ for ($i = 0; $i < $max_redirects; $i++) {
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-    
+
     if ($http_code >= 300 && $http_code < 400) {
         $final_headers = substr($response, 0, $header_size);
         preg_match('/^Location:\s*([^\r\n]+)/mi', $final_headers, $matches);
         $redirect_url = trim($matches[1] ?? '');
-        
+
         if (!$redirect_url) break;
 
+        // Handle relative redirects
         if (strpos($redirect_url, '/') === 0) {
-            $redirect_url = 'http://' . $spoofed_host . $redirect_url;
+            $redirect_url = 'https://' . $ngrok_host . $redirect_url;
         }
 
+        // Replace all internal Canvas hostnames with ngrok host in redirect URLs
+        $redirect_url = str_replace($internal_hosts, $ngrok_host, $redirect_url);
+
         $target_url = $redirect_url;
-        
+
         // Update spoofed host for the next hop
         $parsed_redirect = parse_url($redirect_url);
         $new_host = $parsed_redirect['host'] ?? '';
-        
+
         if ($new_host) {
             $port = isset($parsed_redirect['port']) ? ':' . $parsed_redirect['port'] : '';
             $spoofed_host = $new_host . $port;
@@ -91,7 +97,7 @@ for ($i = 0; $i < $max_redirects; $i++) {
         curl_close($ch);
         continue;
     }
-    
+
     if ($http_code === 200) {
         $final_headers = substr($response, 0, $header_size);
         $mime_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
@@ -99,7 +105,7 @@ for ($i = 0; $i < $max_redirects; $i++) {
         curl_close($ch);
         break;
     }
-    
+
     $file_data = substr($response, $header_size);
     curl_close($ch);
     break;
