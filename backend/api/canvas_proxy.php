@@ -35,6 +35,10 @@ $spoofed_host = $frontend_port ? $frontend_host . ':' . $frontend_port : ($front
 // Extract the actual internal network host from our .env variable
 $internal_canvas_host = parse_url($canvas_base_url, PHP_URL_HOST);
 
+// Dynamically build the Host header from CANVAS_BASE_URL
+// Works for both local (canvas-lms-web-1) and deployed (ngrok/tunnel URLs)
+$ngrok_host = parse_url($canvas_base_url, PHP_URL_HOST);
+
 for ($i = 0; $i < $max_redirects; $i++) {
     
     // PHYSICAL ROUTING: Dynamically translate local domains to the internal network host.
@@ -45,8 +49,8 @@ for ($i = 0; $i < $max_redirects; $i++) {
     
     $headers = [
         "Authorization: Bearer {$api_token}",
-        "Host: localhost",                  // The "ID Badge" that tricks ngrok
-        "ngrok-skip-browser-warning: true"   // Bypasses the annoying ngrok landing page
+        "Host: {$ngrok_host}",              // Dynamically uses ngrok/tunnel domain from .env
+        "ngrok-skip-browser-warning: true"  // Bypasses the annoying ngrok landing page
     ];
 
     curl_setopt_array($ch, [
