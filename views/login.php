@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['user_id'])) {
-    header("Location: /dashboard.php");
+    header("Location: /dashboard");
     exit();
 }
 ?>
@@ -23,15 +23,13 @@ if (isset($_SESSION['user_id'])) {
 
 <body>
 
-    <!-- Back to Home Button -->
-    <a href="/index.php" class="btn-back">
+    <a href="/" class="btn-back">
         <i class="fa-solid fa-arrow-left"></i>
         <span>Back to Home</span>
     </a>
 
     <div class="split-wrapper">
 
-        <!-- Left: Visual/Branding Side -->
         <section class="visual-side">
             <div class="visual-depth-card">
                 <div class="logo-wrapper">
@@ -49,7 +47,6 @@ if (isset($_SESSION['user_id'])) {
             </div>
         </section>
 
-        <!-- Right: Form Side -->
         <section class="form-side">
             <div class="glass-card">
                 <div class="form-header">
@@ -76,7 +73,7 @@ if (isset($_SESSION['user_id'])) {
                     <div class="form-actions" style="margin-top: 24px;">
                         <button type="submit" name="login" class="btn-main">Sign In</button>
                         <p class="signin-link">
-                            Don't have an account yet? <a href="/register.php">Create account</a>
+                            Don't have an account yet? <a href="/register">Create account</a>
                         </p>
                     </div>
                 </form>
@@ -84,7 +81,6 @@ if (isset($_SESSION['user_id'])) {
         </section>
     </div>
 
-    <!-- MODAL: Account Verified (triggered from verify.php redirect) -->
     <?php if (isset($_GET['verified']) && $_GET['verified'] === 'true'): ?>
         <div class="modal-overlay active" id="verifiedModal">
             <div class="modal-card">
@@ -96,7 +92,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     <?php endif; ?>
 
-    <!-- MODAL: Password Recovery -->
     <div class="modal-overlay" id="recoveryModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -114,7 +109,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-    <!-- MODAL: Login Error -->
     <?php if (isset($_SESSION['error_login'])): ?>
         <div class="modal-overlay active" id="loginErrorModal">
             <div class="modal-card">
@@ -127,7 +121,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     <?php endif; ?>
 
-    <!-- MODAL: Recovery Error -->
     <?php if (isset($_SESSION['error_recovery'])): ?>
         <div class="modal-overlay active" id="recoveryErrorModal">
             <div class="modal-card">
@@ -140,7 +133,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     <?php endif; ?>
 
-    <!-- MODAL: Password Reset Success -->
     <?php if (isset($_SESSION['reset_success'])): ?>
         <div class="modal-overlay active" id="resetSuccessModal">
             <div class="modal-card">
@@ -153,7 +145,6 @@ if (isset($_SESSION['user_id'])) {
         <?php unset($_SESSION['reset_success']); ?>
     <?php endif; ?>
 
-    <!-- MODAL: Recovery Email Sent -->
     <?php if (isset($_SESSION['success_recovery'])): ?>
         <div class="modal-overlay active" id="recoverySuccessModal">
             <div class="modal-card">

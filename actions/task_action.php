@@ -9,7 +9,8 @@ if (!isset($_SESSION['user_id'])) {
         echo json_encode(['error' => 'Unauthorized access.']);
         exit();
     }
-    header("Location: /login.php");
+    // Updated: Use Clean URL redirect
+    header("Location: ../login");
     exit();
 }
 
@@ -17,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'];
     $action = $_POST['action'] ?? '';
 
-    // NEW: Check if the request is an AJAX background call
+    // Check if the request is an AJAX background call
     $is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == 1;
 
     try {
@@ -50,6 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $reminder_value = !empty($_POST['reminder_value']) ? (int)$_POST['reminder_value'] : 0;
             $reminder_unit  = $_POST['reminder_unit'] ?? 'none';
 
+            // Logic Win: Setting reminder_sent = 0 ensures that if a student edits a deadline, 
+            // the system "re-arms" the reminder email.
             $stmt = $pdo->prepare("UPDATE tasks SET title = ?, course = ?, due_date = ?, priority = ?, status = ?, reminder_value = ?, reminder_unit = ?, reminder_sent = 0 WHERE task_id = ? AND user_id = ?");
             $stmt->execute([$title, $course, $due_date, $priority, $status, $reminder_value, $reminder_unit, $task_id, $user_id]);
         }
@@ -83,8 +86,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
 
-        header("Location: /views/tasks.php");
+        // Updated: Redirect to clean URL
+        header("Location: ../tasks");
         exit();
+
     } catch (PDOException $e) {
         error_log("TalaAral Task Action Error ($action): " . $e->getMessage());
 
@@ -95,10 +100,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
 
-        header("Location: /views/tasks.php?error=db_error");
+        header("Location: ../tasks?error=db_error");
         exit();
     }
 } else {
-    header("Location: /views/tasks.php");
+    header("Location: ../tasks");
     exit();
 }

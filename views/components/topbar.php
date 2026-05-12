@@ -101,7 +101,7 @@ $search_placeholder = isset($topbar_search_placeholder) ? $topbar_search_placeho
     <?php endif; ?>
 
     <div class="topbar-right">
-        <a href="/views/profile.php" class="topbar-avatar">
+        <a href="/profile" class="topbar-avatar">
             <?php if (!empty($topbar_pic)): ?>
                 <img src="<?php echo htmlspecialchars($topbar_pic); ?>" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
             <?php else: ?>

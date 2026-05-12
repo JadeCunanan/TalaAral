@@ -1,25 +1,28 @@
 RewriteEngine On
 RewriteBase /
 
+# 1. Security: Prevent browsing of folders without index files
 Options -Indexes
 
-# 2. Root URL
+# 2. Root URL: Send the landing page to index
 RewriteRule ^$ views/index.php [L]
 
-# 3. Serve real files/folders directly (THIS must catch /views/reset_password.php)
+# 3. Handle Real Files: If it's a real CSS, JS, or Image file, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# 4. Clean URLs (extensionless) — only for paths NOT already under /views/
+# 4. Clean URLs: Turn /dashboard into /views/dashboard.php
+# This only triggers if the user DIDN'T type /views/ in the URL
 RewriteCond %{REQUEST_URI} !^/views/
 RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
 RewriteRule ^([^/.]+)$ views/$1.php [L]
 
-# 5. PHP fallback — only for paths NOT already under /views/
+# 5. PHP Fallback: If they type /login.php, still point it to /views/login.php
 RewriteCond %{REQUEST_URI} !^/views/
 RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
 RewriteRule ^([^/.]+)\.php$ views/$1.php [L]
 
-# 6. 404 fallback
+# 6. Global 404: If the route doesn't exist, send them back to index (or a 404 page)
+# Using a relative path ensures it works on Render and Localhost
 ErrorDocument 404 /index

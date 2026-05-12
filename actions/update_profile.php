@@ -1,6 +1,5 @@
 <?php
 session_start();
-// Prevent PHP warnings from breaking our JSON response
 error_reporting(0);
 header('Content-Type: application/json');
 
@@ -14,9 +13,8 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $full_name = trim($_POST['full_name'] ?? '');
-$email = trim($_POST['email'] ?? ''); // Read-only on frontend, but received here
 
-// 2. Basic Validation
+// 2. Validation
 if (empty($full_name)) {
     echo json_encode(['success' => false, 'error' => 'Full Name cannot be empty.']);
     exit();
@@ -25,22 +23,25 @@ if (empty($full_name)) {
 try {
     if (!isset($pdo)) throw new Exception("Database connection failed.");
 
-    // 3. Update the database
-    $stmt = $pdo->prepare("UPDATE users SET full_name = ?, email = ? WHERE id = ?");
-    if ($stmt->execute([$full_name, $email, $user_id])) {
+    // 3. Update ONLY the full_name
+    // We remove the email from the SET clause entirely.
+    $stmt = $pdo->prepare("UPDATE users SET full_name = ? WHERE id = ?");
+    
+    if ($stmt->execute([$full_name, $user_id])) {
         
-        // Update the session so the sidebar and header reflect the new name on refresh
+        // Sync the session memory
         $_SESSION['full_name'] = $full_name;
         
         echo json_encode([
             'success' => true, 
-            'message' => 'Profile information updated successfully!',
-            'new_name' => $full_name // <-- ADD THIS LINE
+            'message' => 'Name updated successfully!',
+            'new_name' => $full_name 
         ]);
     } else {
-        echo json_encode(['success' => false, 'error' => 'Failed to apply changes.']);
+        echo json_encode(['success' => false, 'error' => 'No changes were made.']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Database error.']);
+    error_log("TalaAral Profile Update Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'A database error occurred.']);
 }
 ?>

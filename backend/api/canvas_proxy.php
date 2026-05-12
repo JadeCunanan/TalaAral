@@ -6,6 +6,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $api_token = getenv('CANVAS_API_TOKEN');
+// Grab the dynamic Canvas URL from your .env
+$canvas_base_url = getenv('CANVAS_BASE_URL'); 
+
 $file_url  = $_GET['url']      ?? '';
 $filename  = $_GET['filename'] ?? '';
 
@@ -22,24 +25,27 @@ $mime_type = 'application/octet-stream';
 $file_data = '';
 $final_headers = '';
 
-// Start with the exact URL from the frontend
 $target_url = $file_url;
-// Match our initial "Fake ID" to the URL we are requesting
-$spoofed_host = parse_url($file_url, PHP_URL_HOST) ?: 'localhost:3000';
-if (parse_url($file_url, PHP_URL_PORT)) {
-    $spoofed_host .= ':' . parse_url($file_url, PHP_URL_PORT);
-}
+
+// Dynamically determine what host the frontend asked for
+$frontend_host = parse_url($file_url, PHP_URL_HOST);
+$frontend_port = parse_url($file_url, PHP_URL_PORT);
+$spoofed_host = $frontend_port ? $frontend_host . ':' . $frontend_port : ($frontend_host ?: 'localhost');
+
+// Extract the actual internal network host from our .env variable
+$internal_canvas_host = parse_url($canvas_base_url, PHP_URL_HOST);
 
 for ($i = 0; $i < $max_redirects; $i++) {
     
-    // PHYSICAL ROUTING: Always translate Canvas domains to our Docker network name
-    $physical_url = str_replace(['localhost:3000', 'localhost', 'canvas.docker'], 'canvas-lms-web-1', $target_url);
+    // PHYSICAL ROUTING: Dynamically translate local domains to the internal network host.
+    // If deployed with a Cloudflare tunnel, it just uses the tunnel URL directly!
+    $physical_url = str_replace(['localhost:3000', 'localhost', 'canvas.docker'], $internal_canvas_host, $target_url);
 
     $ch = curl_init($physical_url);
     
     $headers = [
         "Authorization: Bearer {$api_token}",
-        "Host: {$spoofed_host}" // Dynamically update the Host header to appease Canvas
+        "Host: {$spoofed_host}" // Keep appeasing Canvas with the fake host
     ];
 
     curl_setopt_array($ch, [
@@ -66,11 +72,9 @@ for ($i = 0; $i < $max_redirects; $i++) {
             $redirect_url = 'http://' . $spoofed_host . $redirect_url;
         }
 
-        // Update URL for the next hop
         $target_url = $redirect_url;
         
-        // CRITICAL FIX: If Canvas redirects us to a new domain (like canvas.docker),
-        // we MUST change our "Fake ID" to match it, or it will infinitely redirect us.
+        // Update spoofed host for the next hop
         $parsed_redirect = parse_url($redirect_url);
         $new_host = $parsed_redirect['host'] ?? '';
         
@@ -108,7 +112,6 @@ if ($http_code !== 200 || empty($file_data)) {
 
 $mime_type = explode(';', $mime_type)[0];
 
-// Extract actual filename from Canvas headers if available
 if (empty($filename)) {
     if (preg_match('/filename="?([^"]+)"?/i', $final_headers, $name_matches)) {
         $filename = $name_matches[1];

@@ -5,8 +5,10 @@ $backend_root = dirname(__DIR__);
 require_once $backend_root . '/api/send_mail.php'; 
 require_once $backend_root . '/includes/db.php';
 
+// 1. Grab your dynamic APP_URL from the environment
+$app_url = getenv('APP_URL') ?: 'http://localhost';
+
 try {
-    // 1. Fetch exactly like your working version
     $stmt = $pdo->prepare("
         SELECT t.*, u.email, u.full_name 
         FROM tasks t
@@ -29,10 +31,9 @@ try {
         $now = new DateTime();
         
         if ($now >= $reminderTime) {
-            // 2. Simplified Subject (No emojis/escaped quotes for better delivery)
             $subject = "TalaAral Reminder: " . $task['title'];
             
-            // 3. Robust HTML Body
+            // 2. Use the $app_url variable in the link below
             $body = "
             <div style='background-color: #f4f7f9; padding: 20px; font-family: sans-serif; color: #1e293b;'>
                 <div style='max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;'>
@@ -50,7 +51,7 @@ try {
                         </div>
 
                         <div style='text-align: center; margin-top: 25px;'>
-                            <a href='http://localhost/views/tasks.php' style='background: #0052FF; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>View Dashboard</a>
+                            <a href='{$app_url}/views/tasks.php' style='background: #0052FF; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>View Dashboard</a>
                         </div>
                     </div>
                 </div>
@@ -69,4 +70,3 @@ try {
 } catch (Exception $e) {
     error_log("TalaAral Cron Error: " . $e->getMessage());
 }
-

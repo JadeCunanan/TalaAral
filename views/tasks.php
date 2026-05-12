@@ -3,7 +3,7 @@ date_default_timezone_set('Asia/Manila');
 
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 
@@ -288,7 +288,7 @@ function formatTaskDate(?string $datetime_string, string $status): string
                 <input type="hidden" name="action" value="create">
                 <div class="qf-field">
                     <label>Task Title</label>
-                    <input type="text" name="title" placeholder="e.g., Chapter 4 Reading..." required>
+                    <input type="text" name="title" placeholder="e.g., Round Report Session" required>
                 </div>
                 <div class="qf-field">
                     <label>Course</label>

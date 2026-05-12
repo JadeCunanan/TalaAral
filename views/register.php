@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['user_id'])) {
-    header("Location: /dashboard.php");
+    header("Location: /dashboard");
     exit();
 }
 ?>
@@ -104,8 +104,7 @@ if (isset($_SESSION['user_id'])) {
 
 <body>
 
-    <!-- Back to Home Button -->
-    <a href="/index.php" class="btn-back">
+    <a href="/" class="btn-back">
         <i class="fa-solid fa-arrow-left"></i>
         <span>Back to Home</span>
     </a>
@@ -215,7 +214,7 @@ if (isset($_SESSION['user_id'])) {
                     <div class="form-actions">
                         <button type="submit" name="register" class="btn-main">Create account</button>
                         <p class="signin-link">
-                            Already have an account? <a href="/login.php">Sign in</a>
+                            Already have an account? <a href="/login">Sign in</a>
                         </p>
                     </div>
                 </form>
@@ -242,7 +241,7 @@ if (isset($_SESSION['user_id'])) {
                 <div class="modal-icon success"><i class="fa-solid fa-check"></i></div>
                 <h3>Account Verified!</h3>
                 <p>Your student account has been successfully created. You can now access your workspace.</p>
-                <a href="/login.php" style="text-decoration: none;">
+                <a href="/login" style="text-decoration: none;">
                     <button class="btn-main" style="background: #22c55e;">Login Now</button>
                 </a>
             </div>

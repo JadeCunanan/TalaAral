@@ -6,3 +6,5 @@
 .vscode/
 
 talaaral_rtu_cache.json
+
+backend/cron/cron_log.txt

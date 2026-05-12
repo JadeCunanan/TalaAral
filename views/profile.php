@@ -3,7 +3,7 @@ session_start();
 require_once '../backend/includes/db.php'; 
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 
@@ -74,7 +74,7 @@ $initial = !empty($display_name) ? strtoupper(substr(trim($display_name), 0, 1))
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
                 <div class="topbar-left"></div> 
                 <div class="topbar-right">
-                    <a href="/views/profile.php" class="topbar-avatar" id="topbarAvatar">
+                    <a href="/profile" class="topbar-avatar" id="topbarAvatar">
                         <?php if ($has_avatar): ?>
                             <img src="<?php echo $profile_pic_path; ?>" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                         <?php else: ?>

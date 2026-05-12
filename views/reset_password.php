@@ -2,7 +2,7 @@
 session_start();
 // Security: Redirect if no token is present
 if (!isset($_GET['token'])) {
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 
@@ -23,7 +23,7 @@ try {
 // Redirect if the link is invalid or expired
 if (!$user_data) {
     $_SESSION['error_login'] = "The recovery link is invalid or has expired.";
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 ?>
@@ -35,7 +35,6 @@ if (!$user_data) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Password | TalaAral</title>
 
-    <!-- Unified Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Momo+Trust+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -163,7 +162,7 @@ if (!$user_data) {
                 <div class="form-actions" style="margin-top: 32px;">
                     <button type="submit" name="update_password" class="btn-main">Update Password</button>
                     <p class="signin-link" style="margin-top: 24px;">
-                        Remembered it? <a href="/login.php">Back to Sign in</a>
+                        Remembered it? <a href="/login">Back to Sign in</a>
                     </p>
                 </div>
             </form>

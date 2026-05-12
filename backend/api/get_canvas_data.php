@@ -20,6 +20,10 @@ if (!$api_token) {
     exit();
 }
 
+// 1. Dynamically identify the network hosts
+$internal_canvas_host = parse_url($base_url, PHP_URL_HOST);
+$frontend_host = $_SERVER['HTTP_HOST'] ?? 'localhost:3000'; // Auto-detects Render URL or localhost
+
 try {
     // ── Fetch active courses JOIN with programs ──
     $stmt = $pdo->prepare("
@@ -60,10 +64,11 @@ try {
             CURLOPT_HTTPHEADER     => [
                 "Authorization: Bearer {$api_token}",
                 "Content-Type: application/json",
-                "Host: localhost:3000"
+                // 2. Dynamically spoof the host to match the environment
+                "Host: {$frontend_host}" 
             ],
             CURLOPT_TIMEOUT        => 10,
-            CURLOPT_SSL_VERIFYPEER => false, // <-- UPDATED: Disabled for local Docker dev
+            CURLOPT_SSL_VERIFYPEER => false,
         ]);
 
         $response   = curl_exec($ch);
@@ -87,14 +92,14 @@ try {
         foreach ($files as $file) {
             if (!empty($file['hidden']) || !empty($file['locked'])) continue;
 
-            // <-- UPDATED: Swap internal Docker name for external Localhost
+            // 3. Dynamically swap the internal Docker name for the live Frontend URL
             $raw_url = $file['url'] ?? null;
-            $safe_url = $raw_url ? str_replace('canvas-lms-web-1', 'localhost:3000', $raw_url) : null;
+            $safe_url = $raw_url ? str_replace($internal_canvas_host, $frontend_host, $raw_url) : null;
 
             $all_files[] = [
                 'id'           => $file['id'] ?? null,
                 'title'        => $file['display_name'] ?? $file['filename'] ?? 'Untitled',
-                'url'          => $safe_url, // <-- UPDATED: Use the safe URL
+                'url'          => $safe_url,
                 'type'         => getFileType($file['content-type'] ?? ''),
                 'mime'         => $file['content-type'] ?? '',
                 'size'         => formatFileSize($file['size'] ?? 0),
@@ -139,3 +144,4 @@ function formatFileSize(int $bytes): string
     if ($bytes < 1073741824) return round($bytes / 1048576, 1) . ' MB';
     return round($bytes / 1073741824, 1) . ' GB';
 }
+?>

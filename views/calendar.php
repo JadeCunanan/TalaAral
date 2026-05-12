@@ -4,7 +4,7 @@ session_start();
 
 // Security check
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 
@@ -99,7 +99,7 @@ $tasks_json = json_encode($tasks, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT |
             </div>
 
             <div class="modal-actions calendar-modal-actions">
-                <button type="button" class="btn-main" onclick="window.location.href='/views/tasks.php'">
+                <button type="button" class="btn-main" onclick="window.location.href='/tasks'">
                     Manage Tasks <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>
                 </button>
             </div>

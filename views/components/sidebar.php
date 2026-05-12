@@ -1,6 +1,6 @@
 <?php
-// Get the current file name so we can highlight the active menu item
-$current_page = basename($_SERVER['PHP_SELF']);
+// Remove the .php extension from the current file name so we can highlight the active menu item cleanly
+$current_page = str_replace('.php', '', basename($_SERVER['PHP_SELF']));
 
 // Display name fallback chain
 $display_name    = isset($full_name) 
@@ -59,27 +59,27 @@ $sidebar_initial = !empty($display_name) ? strtoupper(substr(trim($display_name)
 
     <nav class="sidebar-nav">
         <p class="nav-section-label">Main</p>
-        <a href="/views/dashboard.php" class="nav-item <?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
+        <a href="/dashboard" class="nav-item <?php echo $current_page == 'dashboard' ? 'active' : ''; ?>">
             <i class="fa-solid fa-house"></i><span>Dashboard</span>
         </a>
-        <a href="/views/tasks.php" class="nav-item <?php echo $current_page == 'tasks.php' ? 'active' : ''; ?>">
+        <a href="/tasks" class="nav-item <?php echo $current_page == 'tasks' ? 'active' : ''; ?>">
             <i class="fa-solid fa-list-check"></i><span>Tasks</span>
-            <span class="nav-badge" id="task-badge"></span>
+            <span class="nav-badge" id="task-badge" style="display:none;"></span>
         </a>
-        <a href="/views/calendar.php" class="nav-item <?php echo $current_page == 'calendar.php' ? 'active' : ''; ?>">
+        <a href="/calendar" class="nav-item <?php echo $current_page == 'calendar' ? 'active' : ''; ?>">
             <i class="fa-solid fa-calendar-days"></i><span>Calendar</span>
         </a>
 
         <p class="nav-section-label">Content</p>
-        <a href="/views/resources.php" class="nav-item <?php echo $current_page == 'resources.php' ? 'active' : ''; ?>">
+        <a href="/resources" class="nav-item <?php echo $current_page == 'resources' ? 'active' : ''; ?>">
             <i class="fa-solid fa-book-open"></i><span>Resources</span>
         </a>
-        <a href="/views/updates.php" class="nav-item <?php echo $current_page == 'updates.php' ? 'active' : ''; ?>">
+        <a href="/updates" class="nav-item <?php echo $current_page == 'updates' ? 'active' : ''; ?>">
             <i class="fa-solid fa-newspaper"></i><span>Updates</span>
         </a>
 
         <p class="nav-section-label">Account</p>
-        <a href="/views/profile.php" class="nav-item <?php echo $current_page == 'profile.php' ? 'active' : ''; ?>">
+        <a href="/profile" class="nav-item <?php echo $current_page == 'profile' ? 'active' : ''; ?>">
             <i class="fa-solid fa-circle-user"></i><span>Profile</span>
         </a>
         <div class="nav-divider"></div>

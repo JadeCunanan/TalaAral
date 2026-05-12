@@ -3,7 +3,7 @@ date_default_timezone_set('Asia/Manila');
 
 session_start();
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /login.php");
+    header("Location: /login");
     exit();
 }
 
@@ -169,7 +169,7 @@ $show_topbar_search = false;
                     <div class="glass-card">
                         <div class="card-head">
                             <h2 class="card-title"><i class="fa-solid fa-clock"></i> Upcoming Deadlines</h2>
-                            <a href="/views/tasks.php" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="/tasks" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                         <div id="deadline-list">
                             <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>
@@ -181,7 +181,7 @@ $show_topbar_search = false;
                     <div class="glass-card">
                         <div class="card-head">
                             <h2 class="card-title"><i class="fa-solid fa-book-open"></i> Latest Resources</h2>
-                            <a href="/views/resources.php" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="/resources" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                         <div id="resources-list">
                             <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>
@@ -193,7 +193,7 @@ $show_topbar_search = false;
                     <div class="glass-card">
                         <div class="card-head">
                             <h2 class="card-title"><i class="fa-solid fa-newspaper"></i> RTU Updates</h2>
-                            <a href="/views/updates.php" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+                            <a href="/updates" class="card-link">View all <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                         <div id="updates-list">
                             <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>
@@ -294,7 +294,7 @@ $show_topbar_search = false;
                         return;
                     }
                     list.innerHTML = data.map(f => `
-                        <a class="resource-item" href="/views/resources.php">
+                        <a class="resource-item" href="/resources">
                             <div class="resource-icon resource-icon--${escapeHTML(f.type)}"><i class="fa-solid fa-file"></i></div>
                             <div class="resource-info">
                                 <div class="resource-title">${escapeHTML(f.title)}</div>
@@ -312,7 +312,7 @@ $show_topbar_search = false;
                         return;
                     }
                     list.innerHTML = data.map(u => `
-                        <a class="update-item" href="/views/updates.php?open=${encodeURIComponent(u.url)}">
+                        <a class="update-item" href="/updates?open=${encodeURIComponent(u.url)}">
                             <div class="update-title">${escapeHTML(u.title)}</div>
                             <div class="update-date"><i class="fa-solid fa-calendar-days"></i> ${escapeHTML(u.date)}</div>
                         </a>`).join('');
@@ -364,4 +364,4 @@ $show_topbar_search = false;
     </script>
 </body>
 
-</html> 
+</html>

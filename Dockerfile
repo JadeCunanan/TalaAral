@@ -29,7 +29,16 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 # Set working directory
 WORKDIR /var/www/html
 
-# Set proper permissions for the web server
+# --- NEW: Cloud Deployment Steps ---
+
+# 1. Copy your project files into the container
+COPY . /var/www/html
+
+# 2. Run composer install to pull in PHPMailer and SimplePie
+# We use --no-dev to keep the image small and fast
+RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
+
+# 3. Set proper permissions for the web server
 RUN chown -R www-data:www-data /var/www/html
 
 # Standard Apache start

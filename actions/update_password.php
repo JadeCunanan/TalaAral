@@ -45,13 +45,19 @@ try {
         exit();
     }
 
-    // 4. Verify that they typed their current password correctly
+    // 4. Verify current password
     if (!password_verify($current_password, $user['password_hash'])) {
         echo json_encode(['success' => false, 'error' => 'Incorrect current password.']);
         exit();
     }
 
-    // 5. Hash the new password and update the database
+    // --- PRO TIP: Password Reuse Check ---
+    if (password_verify($new_password, $user['password_hash'])) {
+        echo json_encode(['success' => false, 'error' => 'New password cannot be the same as your old password.']);
+        exit();
+    }
+
+    // 5. Hash and Update
     $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
     $updateStmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
     $updateStmt->execute([$new_hash, $user_id]);
@@ -62,6 +68,7 @@ try {
     ]);
 
 } catch (Exception $e) {
+    error_log("TalaAral PWD Change Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'Database error.']);
 }
 ?>
