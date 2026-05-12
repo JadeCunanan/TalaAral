@@ -24,7 +24,7 @@ $header_size = 0;
 $mime_type = 'application/octet-stream';
 $file_data = '';
 $final_headers = '';
-
+$physical_url = '';
 $target_url = $file_url;
 
 // Dynamically determine what host the frontend asked for
@@ -45,7 +45,8 @@ for ($i = 0; $i < $max_redirects; $i++) {
     
     $headers = [
         "Authorization: Bearer {$api_token}",
-        "Host: {$spoofed_host}" // Keep appeasing Canvas with the fake host
+        "Host: localhost",                  // The "ID Badge" that tricks ngrok
+        "ngrok-skip-browser-warning: true"   // Bypasses the annoying ngrok landing page
     ];
 
     curl_setopt_array($ch, [
