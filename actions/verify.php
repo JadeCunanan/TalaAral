@@ -2,10 +2,8 @@
 session_start();
 require_once '../backend/includes/db.php';
 
-// 1. Load the .env file to get your global APP_URL
-// Assuming verify.php is in the /views/ folder, we go up one level to find .env
-$env = parse_ini_file(__DIR__ . '/../.env'); 
-$app_url = $env['APP_URL'] ?? 'http://localhost';
+// Read APP_URL from environment variables (set via Render dashboard)
+$app_url = rtrim(getenv('APP_URL') ?: 'http://localhost', '/');
 
 if (isset($_GET['token'])) {
     $token        = $_GET['token'];
