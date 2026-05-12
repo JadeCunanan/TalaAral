@@ -36,7 +36,7 @@ COPY . /var/www/html
 
 # 2. Run composer install to pull in PHPMailer and SimplePie
 # We use --no-dev to keep the image small and fast
-RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
+RUN composer install --working-dir=backend --no-interaction --no-plugins --no-scripts --prefer-dist
 
 # 3. Set proper permissions for the web server
 RUN chown -R www-data:www-data /var/www/html
