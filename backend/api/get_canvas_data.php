@@ -20,9 +20,10 @@ if (!$api_token) {
     exit();
 }
 
-// 1. Dynamically identify the network hosts
+// 1. Dynamically identify the network hosts from CANVAS_BASE_URL
+// This ensures compatibility with ngrok, Cloudflare tunnels, and local Docker
 $internal_canvas_host = parse_url($base_url, PHP_URL_HOST);
-$frontend_host = $_SERVER['HTTP_HOST'] ?? 'localhost:3000'; // Auto-detects Render URL or localhost
+$frontend_host = $internal_canvas_host; // Always use the ngrok/tunnel host from .env
 
 try {
     // ── Fetch active courses JOIN with programs ──
@@ -64,8 +65,8 @@ try {
             CURLOPT_HTTPHEADER     => [
                 "Authorization: Bearer {$api_token}",
                 "Content-Type: application/json",
-                // 2. Dynamically spoof the host to match the environment
-                "Host: {$frontend_host}" 
+                "Host: {$frontend_host}",           // Always the ngrok/tunnel domain from .env
+                "ngrok-skip-browser-warning: true"  // Bypasses ngrok interstitial page
             ],
             CURLOPT_TIMEOUT        => 10,
             CURLOPT_SSL_VERIFYPEER => false,
@@ -76,7 +77,7 @@ try {
         $curl_error = curl_error($ch);
         curl_close($ch);
 
-       if ($curl_error) {
+        if ($curl_error) {
             echo json_encode(['error' => "cURL Error on Course {$course_id}: {$curl_error}"]);
             exit();
         }
@@ -92,8 +93,8 @@ try {
         foreach ($files as $file) {
             if (!empty($file['hidden']) || !empty($file['locked'])) continue;
 
-            // 3. Dynamically swap the internal Docker name for the live Frontend URL
-            $raw_url = $file['url'] ?? null;
+            // Swap internal Docker hostname for the live ngrok/tunnel URL
+            $raw_url  = $file['url'] ?? null;
             $safe_url = $raw_url ? str_replace($internal_canvas_host, $frontend_host, $raw_url) : null;
 
             $all_files[] = [
@@ -125,14 +126,14 @@ try {
 
 function getFileType(string $mime): string
 {
-    if (str_contains($mime, 'pdf'))                                      return 'pdf';
-    if (str_contains($mime, 'word') || str_contains($mime, 'docx'))      return 'word';
+    if (str_contains($mime, 'pdf'))                                               return 'pdf';
+    if (str_contains($mime, 'word') || str_contains($mime, 'docx'))               return 'word';
     if (str_contains($mime, 'presentation') || str_contains($mime, 'powerpoint')) return 'ppt';
     if (str_contains($mime, 'spreadsheet') || str_contains($mime, 'excel'))       return 'excel';
-    if (str_contains($mime, 'image'))                                    return 'image';
-    if (str_contains($mime, 'video'))                                    return 'video';
-    if (str_contains($mime, 'audio'))                                    return 'audio';
-    if (str_contains($mime, 'zip') || str_contains($mime, 'compressed')) return 'zip';
+    if (str_contains($mime, 'image'))                                             return 'image';
+    if (str_contains($mime, 'video'))                                             return 'video';
+    if (str_contains($mime, 'audio'))                                             return 'audio';
+    if (str_contains($mime, 'zip') || str_contains($mime, 'compressed'))          return 'zip';
     return 'file';
 }
 
