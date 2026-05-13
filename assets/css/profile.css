@@ -18,6 +18,8 @@
   display: grid;
   grid-template-columns: 320px 1fr; 
   gap: 28px; 
+  grid-template-columns: 320px 1fr; 
+  gap: 28px; 
   align-items: start;
   max-width: 1200px; 
   margin: 0 auto;
@@ -88,6 +90,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 48px 24px; 
   padding: 48px 24px; 
 }
 
@@ -304,7 +307,6 @@
     font-size: 1.8rem !important;
   }
   
-  /* Give the content breathing room */
   .settings-content-card {
     padding: 24px 16px;
   }
@@ -313,7 +315,6 @@
     padding: 32px 16px;
   }
   
-  /* Full-width tap targets for save buttons */
   .form-actions {
     justify-content: center;
   }
