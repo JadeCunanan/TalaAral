@@ -32,12 +32,11 @@ $all_items = [];
 
 foreach (RTU_FEED_BASES as $base_url) {
     for ($page = 1; $page <= FEED_PAGES; $page++) {
-        $feed_url = trim($base_url) . '?paged=' . $page;
+        $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
         $xml_string = fetch_url($feed_url);
         if (!$xml_string) continue;
 
         $page_items = parse_rss($xml_string);
-
         if (empty($page_items)) break;
 
         $all_items = array_merge($all_items, $page_items);
