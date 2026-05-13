@@ -32,11 +32,12 @@ $all_items = [];
 
 foreach (RTU_FEED_BASES as $base_url) {
     for ($page = 1; $page <= FEED_PAGES; $page++) {
-        $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
+        $feed_url = trim($base_url) . '?paged=' . $page;
         $xml_string = fetch_url($feed_url);
         if (!$xml_string) continue;
 
         $page_items = parse_rss($xml_string);
+
         if (empty($page_items)) break;
 
         $all_items = array_merge($all_items, $page_items);
@@ -75,20 +76,8 @@ function is_valid_image(string $url): bool {
 }
 
 function fetch_url(string $url): string|false {
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'TalaAral-Academic-Dashboard/1.0');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    error_log("fetch_url: $url | HTTP $httpCode | Error: $error");
-    
-    return ($httpCode === 200) ? $response : false;
+    $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'TalaAral-Academic-Dashboard/1.0']]);
+    return @file_get_contents($url, false, $ctx);
 }
 
 function strip_thumbnail_from_content(string $content, string $thumbnail_url): string {
