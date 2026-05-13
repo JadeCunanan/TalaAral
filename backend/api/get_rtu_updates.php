@@ -10,55 +10,71 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
-$feed_urls = explode(',', $feed_sources);
-$cache_ttl = (int)(getenv('RTU_CACHE_TTL') ?: 900);
+$feed_urls    = explode(',', $feed_sources);
+$feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 3);
+$cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 
 $all_items = [];
 
-foreach ($feed_urls as $feed_url) {
-    $feed = new SimplePie\SimplePie();
-    $feed->set_feed_url(trim($feed_url));
-    $feed->set_cache_duration($cache_ttl);
-    $feed->set_cache_location(sys_get_temp_dir());
-    $feed->set_useragent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
-    $feed->set_timeout(15);
-    $feed->force_feed(true);
-    $feed->init();
-    $feed->handle_content_type();
+foreach ($feed_urls as $base_url) {
+    for ($page = 1; $page <= $feed_pages; $page++) {
+        $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
 
-    if ($feed->error()) {
-        error_log("SimplePie error for $feed_url: " . $feed->error());
-        continue;
-    }
+        $feed = new SimplePie\SimplePie();
+        $feed->set_feed_url($feed_url);
+        $feed->set_cache_duration($cache_ttl);
+        $feed->set_cache_location(sys_get_temp_dir());
+        $feed->set_useragent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+        $feed->set_timeout(15);
+        $feed->force_feed(true);
+        $feed->set_curl_options([
+            CURLOPT_HTTPHEADER => [
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language: en-US,en;q=0.5',
+                'Accept-Encoding: gzip, deflate, br',
+                'Connection: keep-alive',
+            ]
+        ]);
+        $feed->init();
+        $feed->handle_content_type();
 
-    foreach ($feed->get_items() as $item) {
-        $thumbnail = '';
-        $enclosure = $item->get_enclosure();
-        if ($enclosure && str_starts_with($enclosure->get_type() ?? '', 'image/')) {
-            $thumbnail = $enclosure->get_link() ?? '';
+        if ($feed->error()) {
+            error_log("SimplePie error for $feed_url: " . $feed->error());
+            break;
         }
-        if (!$thumbnail) {
-            $thumb = $item->get_thumbnail();
-            $thumbnail = $thumb['url'] ?? '';
+
+        $page_items = $feed->get_items();
+        if (empty($page_items)) break;
+
+        foreach ($page_items as $item) {
+            $thumbnail = '';
+            $enclosure = $item->get_enclosure();
+            if ($enclosure && str_starts_with($enclosure->get_type() ?? '', 'image/')) {
+                $thumbnail = $enclosure->get_link() ?? '';
+            }
+            if (!$thumbnail) {
+                $thumb     = $item->get_thumbnail();
+                $thumbnail = $thumb['url'] ?? '';
+            }
+
+            $content_raw = $item->get_content() ?? $item->get_description() ?? '';
+
+            $all_items[] = [
+                'title'     => $item->get_title() ?? '',
+                'url'       => $item->get_permalink() ?? '',
+                'date'      => $item->get_date('M j, Y') ?? '',
+                'timestamp' => $item->get_date('U') ?? 0,
+                'category'  => str_contains(strtolower($item->get_title() ?? ''), 'announcement') ? 'announcement' : 'news',
+                'excerpt'   => mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…'),
+                'thumbnail' => $thumbnail,
+                'content'   => $content_raw,
+            ];
         }
-
-        $content_raw = $item->get_content() ?? $item->get_description() ?? '';
-
-        $all_items[] = [
-            'title'     => $item->get_title() ?? '',
-            'url'       => $item->get_permalink() ?? '',
-            'date'      => $item->get_date('M j, Y') ?? '',
-            'timestamp' => $item->get_date('U') ?? 0,
-            'category'  => str_contains(strtolower($item->get_title() ?? ''), 'announcement') ? 'announcement' : 'news',
-            'excerpt'   => mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…'),
-            'thumbnail' => $thumbnail,
-            'content'   => $content_raw,
-        ];
     }
 }
 
 // DEDUPLICATION & SORTING
-$seen = [];
+$seen   = [];
 $unique = [];
 foreach ($all_items as $item) {
     if (!empty($item['url']) && !isset($seen[$item['url']])) {
