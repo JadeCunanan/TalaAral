@@ -1,4 +1,5 @@
 <?php
+
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
@@ -23,7 +24,8 @@ $requested_page = max(1, (int)($_GET['page'] ?? 1));
 $is_preview     = isset($_GET['preview']);
 $is_load_more   = $requested_page > 1;
 
-function fetch_rss_raw(string $url): string|false {
+function fetch_rss_raw(string $url): string|false
+{
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL            => $url,
@@ -54,7 +56,8 @@ function fetch_rss_raw(string $url): string|false {
     return substr($response, $header_size);
 }
 
-function is_valid_image(string $url): bool {
+function is_valid_image(string $url): bool
+{
     if (empty($url)) return false;
     $lowUrl = strtolower($url);
     $banned = ['sustainable-development-goals', 'sdg', 'goal', 'program', 'cropped-', 'logo', 'favicon', 'banner', 'header', 'footer', 'sidebar', 'facebook', 'twitter', 'instagram'];
@@ -64,14 +67,16 @@ function is_valid_image(string $url): bool {
     return !preg_match('/\/\d+(-\d+)?-e\d*\./', $lowUrl);
 }
 
-function strip_thumbnail_from_content(string $content, string $thumbnail_url): string {
+function strip_thumbnail_from_content(string $content, string $thumbnail_url): string
+{
     if (empty($content) || empty($thumbnail_url)) return $content;
     $thumb_filename = preg_quote(basename(strtok($thumbnail_url, '?#')), '/');
     $content = preg_replace('/<figure[^>]*>(?:(?!<\/figure>).)*?' . $thumb_filename . '(?:(?!<\/figure>).)*?<\/figure>/si', '', $content, 1);
     return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
 }
 
-function parse_feed(string $raw, bool $is_announcement_feed): array {
+function parse_feed(string $raw, bool $is_announcement_feed): array
+{
     $feed = new SimplePie\SimplePie();
     $feed->set_raw_data($raw);
     $feed->enable_cache(false);
@@ -106,7 +111,10 @@ function parse_feed(string $raw, bool $is_announcement_feed): array {
 
         $thumbnail = '';
         foreach ($potential_images as $img_url) {
-            if (is_valid_image($img_url)) { $thumbnail = $img_url; break; }
+            if (is_valid_image($img_url)) {
+                $thumbnail = $img_url;
+                break;
+            }
         }
 
         $item_cats = $item->get_categories();
@@ -120,6 +128,9 @@ function parse_feed(string $raw, bool $is_announcement_feed): array {
             || str_contains(strtolower($title), 'announcement');
 
         $excerpt = mb_strimwidth(strip_tags(html_entity_decode($item->get_description() ?? '')), 0, 160, '…');
+
+        // Skip items with empty or whitespace-only excerpts
+        if (empty($title) || empty($url) || empty(trim(str_replace('…', '', $excerpt)))) continue;
 
         $result[] = [
             'id'        => md5($url),
