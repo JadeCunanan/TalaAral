@@ -2,47 +2,12 @@
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
- * DEBUG MODE - remove debug block after testing
  */
 
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/../vendor/autoload.php';
-
-// ============================================================
-// TEMPORARY DEBUG - remove after testing
-// ============================================================
-$test_url = 'https://www.rtu.edu.ph/category/announcement/feed/';
-$ch = curl_init();
-curl_setopt_array($ch, [
-    CURLOPT_URL            => $test_url,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT        => 15,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_ENCODING       => '',
-    CURLOPT_HEADER         => true,
-    CURLOPT_HTTPHEADER     => [
-        'Accept: application/rss+xml, application/xml, text/xml, */*',
-        'Accept-Language: en-US,en;q=0.9',
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    ],
-]);
-$response   = curl_exec($ch);
-$http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curl_error = curl_error($ch);
-curl_close($ch);
-
-echo json_encode([
-    'http_code'        => $http_code,
-    'curl_error'       => $curl_error,
-    'response_preview' => substr($response, 0, 500),
-]);
-die();
-// ============================================================
-// END TEMPORARY DEBUG
-// ============================================================
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
 $feed_urls    = explode(',', $feed_sources);
@@ -51,7 +16,7 @@ $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 
 /**
  * Fetch raw RSS XML via cURL with browser-like headers.
- * Returns false on failure.
+ * RTU returns HTTP 415 but sends valid RSS body anyway — we accept it.
  */
 function fetch_rss_raw(string $url): string|false {
     $ch = curl_init();
@@ -62,6 +27,7 @@ function fetch_rss_raw(string $url): string|false {
         CURLOPT_TIMEOUT        => 15,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_ENCODING       => '',
+        CURLOPT_HEADER         => true,
         CURLOPT_HTTPHEADER     => [
             'Accept: application/rss+xml, application/xml, text/xml, */*',
             'Accept-Language: en-US,en;q=0.9',
@@ -69,15 +35,19 @@ function fetch_rss_raw(string $url): string|false {
             'Connection: keep-alive',
         ],
     ]);
-    $response  = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response    = curl_exec($ch);
+    $http_code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
     curl_close($ch);
 
-    if ($response === false || $http_code !== 200) {
+    $accepted_codes = [200, 415];
+    if ($response === false || !in_array($http_code, $accepted_codes)) {
         error_log("fetch_rss_raw failed for $url — HTTP $http_code");
         return false;
     }
-    return $response;
+
+    // Strip HTTP response headers, pass only XML body to SimplePie
+    return substr($response, $header_size);
 }
 
 $all_items = [];
