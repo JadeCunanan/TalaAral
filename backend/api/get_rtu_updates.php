@@ -9,7 +9,7 @@ header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
+$feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/,https://www.rtu.edu.ph/university-news/feed/';
 $feed_urls    = explode(',', $feed_sources);
 $feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 3);
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
@@ -62,14 +62,27 @@ function strip_thumbnail_from_content(string $content, string $thumbnail_url): s
     return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
 }
 
+// Serve from cache if still fresh
+$cache_file = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
+if ($cache_ttl > 0 && file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_ttl) {
+    $cached = json_decode(file_get_contents($cache_file), true);
+    if (!empty($cached)) {
+        $limit = isset($_GET['preview']) ? 4 : 50;
+        echo json_encode(array_slice($cached, 0, $limit));
+        exit;
+    }
+}
+
 $all_items = [];
+$seen      = [];
 
 foreach ($feed_urls as $base_url) {
-    // Detect announcement feed from URL
     $is_announcement_feed = str_contains(trim($base_url), 'announcement');
 
     for ($page = 1; $page <= $feed_pages; $page++) {
-        $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
+        $feed_url = $page === 1
+            ? trim($base_url)
+            : rtrim(trim($base_url), '/') . '?paged=' . $page;
 
         $raw = fetch_rss_raw($feed_url);
         if ($raw === false) break;
@@ -88,12 +101,17 @@ foreach ($feed_urls as $base_url) {
         $page_items = $feed->get_items();
         if (empty($page_items)) break;
 
+        $page_urls = [];
+
         foreach ($page_items as $item) {
             $title   = trim($item->get_title() ?? '');
             $url     = trim($item->get_permalink() ?? '');
             $excerpt = mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…');
 
-            if (empty($title) || empty($url) || empty($excerpt)) continue;
+            // Only skip if truly no title or URL
+            if (empty($title) || empty($url)) continue;
+
+            $page_urls[] = $url;
 
             $content_raw      = $item->get_content() ?? $item->get_description() ?? '';
             $potential_images = [];
@@ -144,30 +162,35 @@ foreach ($feed_urls as $base_url) {
                 'content'   => $thumbnail ? strip_thumbnail_from_content($content_raw, $thumbnail) : $content_raw,
             ];
         }
+
+        // If RTU ignored ?paged and returned same URLs, stop paginating
+        if ($page > 1 && !empty($page_urls)) {
+            $already_seen = array_filter($page_urls, fn($u) => isset($seen[$u]));
+            if (count($already_seen) === count($page_urls)) break;
+        }
+
+        foreach ($page_urls as $u) {
+            $seen[$u] = true;
+        }
     }
 }
 
-// DEDUPLICATION & SORTING
-$seen   = [];
+// Deduplicate & sort
 $unique = [];
 foreach ($all_items as $item) {
-    if (!empty($item['url']) && !isset($seen[$item['url']])) {
-        $seen[$item['url']] = true;
-        $unique[] = $item;
+    if (!empty($item['url']) && !isset($unique[$item['url']])) {
+        $unique[$item['url']] = $item;
     }
 }
-
+$unique = array_values($unique);
 usort($unique, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
 $unique = array_slice($unique, 0, 50);
 
-// Cache to /tmp if TTL is set (Render-safe location)
+// Write to cache
 if ($cache_ttl > 0 && !empty($unique)) {
-    $cache_file = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
     file_put_contents($cache_file, json_encode($unique));
 }
 
-// Return 4 items for dashboard preview, 50 for full updates page
-$limit  = isset($_GET['preview']) ? 4 : 50;
-$unique = array_slice($unique, 0, $limit);
-
-echo json_encode($unique);
+// Return 4 for dashboard preview, 50 for full page
+$limit = isset($_GET['preview']) ? 4 : 50;
+echo json_encode(array_slice($unique, 0, $limit));
