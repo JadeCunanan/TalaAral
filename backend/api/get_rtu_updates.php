@@ -8,15 +8,12 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 // 1. DYNAMIC CONFIGURATION
-// We check .env for overrides, otherwise fall back to reliable defaults
-$feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcements/feed/';
+$feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
 define('RTU_FEED_BASES', explode(',', $feed_sources));
 
 define('FEED_PAGES', getenv('RTU_FEED_PAGES') ?: 3);
 define('CACHE_FILE', sys_get_temp_dir() . '/talaaral_rtu_cache.json');
-
-// Set to 900 (15 mins) for production to avoid getting blocked by the RTU server
-define('CACHE_TTL', getenv('RTU_CACHE_TTL') ?: 0); 
+define('CACHE_TTL', getenv('RTU_CACHE_TTL') ?: 0);
 define('MAX_ITEMS', 50);
 
 // 2. CACHE CHECK
@@ -79,9 +76,16 @@ function is_valid_image(string $url): bool {
 }
 
 function fetch_url(string $url): string|false {
-    // Increased timeout for potentially slow campus servers
-    $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'TalaAral-Academic-Dashboard/1.0']]);
-    return @file_get_contents($url, false, $ctx);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'TalaAral-Academic-Dashboard/1.0');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return ($httpCode === 200) ? $response : false;
 }
 
 function strip_thumbnail_from_content(string $content, string $thumbnail_url): string {
