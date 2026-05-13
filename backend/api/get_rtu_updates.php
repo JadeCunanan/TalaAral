@@ -2,12 +2,47 @@
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
+ * DEBUG MODE - remove debug block after testing
  */
 
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/../vendor/autoload.php';
+
+// ============================================================
+// TEMPORARY DEBUG - remove after testing
+// ============================================================
+$test_url = 'https://www.rtu.edu.ph/category/announcement/feed/';
+$ch = curl_init();
+curl_setopt_array($ch, [
+    CURLOPT_URL            => $test_url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_TIMEOUT        => 15,
+    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_ENCODING       => '',
+    CURLOPT_HEADER         => true,
+    CURLOPT_HTTPHEADER     => [
+        'Accept: application/rss+xml, application/xml, text/xml, */*',
+        'Accept-Language: en-US,en;q=0.9',
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    ],
+]);
+$response   = curl_exec($ch);
+$http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$curl_error = curl_error($ch);
+curl_close($ch);
+
+echo json_encode([
+    'http_code'        => $http_code,
+    'curl_error'       => $curl_error,
+    'response_preview' => substr($response, 0, 500),
+]);
+die();
+// ============================================================
+// END TEMPORARY DEBUG
+// ============================================================
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
 $feed_urls    = explode(',', $feed_sources);
@@ -26,7 +61,7 @@ function fetch_rss_raw(string $url): string|false {
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_TIMEOUT        => 15,
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_ENCODING       => '', // handles gzip/deflate/br automatically
+        CURLOPT_ENCODING       => '',
         CURLOPT_HTTPHEADER     => [
             'Accept: application/rss+xml, application/xml, text/xml, */*',
             'Accept-Language: en-US,en;q=0.9',
@@ -52,11 +87,11 @@ foreach ($feed_urls as $base_url) {
         $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
 
         $raw = fetch_rss_raw($feed_url);
-        if ($raw === false) break; // skip to next feed on cURL failure
+        if ($raw === false) break;
 
         $feed = new SimplePie\SimplePie();
-        $feed->set_raw_data($raw);   // bypass SimplePie's own HTTP fetcher
-        $feed->enable_cache(false);  // raw_data mode doesn't need cache
+        $feed->set_raw_data($raw);
+        $feed->enable_cache(false);
         $feed->force_feed(true);
         $feed->init();
 
