@@ -14,10 +14,6 @@ $feed_urls    = explode(',', $feed_sources);
 $feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 3);
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 
-/**
- * Fetch raw RSS XML via cURL with browser-like headers.
- * RTU returns HTTP 415 but sends valid RSS body anyway — we accept it.
- */
 function fetch_rss_raw(string $url): string|false {
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -46,13 +42,32 @@ function fetch_rss_raw(string $url): string|false {
         return false;
     }
 
-    // Strip HTTP response headers, pass only XML body to SimplePie
     return substr($response, $header_size);
+}
+
+function is_valid_image(string $url): bool {
+    if (empty($url)) return false;
+    $lowUrl = strtolower($url);
+    $banned = ['sustainable-development-goals', 'sdg', 'goal', 'program', 'cropped-', 'logo', 'favicon', 'banner', 'header', 'footer', 'sidebar', 'facebook', 'twitter', 'instagram'];
+    foreach ($banned as $word) {
+        if (str_contains($lowUrl, $word)) return false;
+    }
+    return !preg_match('/\/\d+(-\d+)?-e\d*\./', $lowUrl);
+}
+
+function strip_thumbnail_from_content(string $content, string $thumbnail_url): string {
+    if (empty($content) || empty($thumbnail_url)) return $content;
+    $thumb_filename = preg_quote(basename(strtok($thumbnail_url, '?#')), '/');
+    $content = preg_replace('/<figure[^>]*>(?:(?!<\/figure>).)*?' . $thumb_filename . '(?:(?!<\/figure>).)*?<\/figure>/si', '', $content, 1);
+    return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
 }
 
 $all_items = [];
 
 foreach ($feed_urls as $base_url) {
+    // Detect announcement feed from URL
+    $is_announcement_feed = str_contains(trim($base_url), 'announcement');
+
     for ($page = 1; $page <= $feed_pages; $page++) {
         $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
 
@@ -74,27 +89,59 @@ foreach ($feed_urls as $base_url) {
         if (empty($page_items)) break;
 
         foreach ($page_items as $item) {
-            $thumbnail = '';
+            $title   = trim($item->get_title() ?? '');
+            $url     = trim($item->get_permalink() ?? '');
+            $excerpt = mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…');
+
+            if (empty($title) || empty($url) || empty($excerpt)) continue;
+
+            $content_raw      = $item->get_content() ?? $item->get_description() ?? '';
+            $potential_images = [];
+
             $enclosure = $item->get_enclosure();
             if ($enclosure && str_starts_with($enclosure->get_type() ?? '', 'image/')) {
-                $thumbnail = $enclosure->get_link() ?? '';
-            }
-            if (!$thumbnail) {
-                $thumb     = $item->get_thumbnail();
-                $thumbnail = $thumb['url'] ?? '';
+                $potential_images[] = $enclosure->get_link() ?? '';
             }
 
-            $content_raw = $item->get_content() ?? $item->get_description() ?? '';
+            $thumb = $item->get_thumbnail();
+            if (!empty($thumb['url'])) {
+                $potential_images[] = $thumb['url'];
+            }
+
+            if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content_raw, $matches)) {
+                $potential_images = array_merge($potential_images, $matches[1]);
+            }
+
+            $thumbnail = '';
+            foreach ($potential_images as $img_url) {
+                if (is_valid_image($img_url)) {
+                    $thumbnail = $img_url;
+                    break;
+                }
+            }
+
+            // Determine category from feed URL or item categories
+            $item_cats = $item->get_categories();
+            $cat_names = [];
+            if ($item_cats) {
+                foreach ($item_cats as $cat) {
+                    $cat_names[] = strtolower($cat->get_label() ?? '');
+                }
+            }
+            $is_announcement = $is_announcement_feed
+                || in_array('announcements', $cat_names)
+                || in_array('announcement', $cat_names)
+                || str_contains(strtolower($title), 'announcement');
 
             $all_items[] = [
-                'title'     => $item->get_title() ?? '',
-                'url'       => $item->get_permalink() ?? '',
+                'title'     => $title,
+                'url'       => $url,
                 'date'      => $item->get_date('M j, Y') ?? '',
                 'timestamp' => $item->get_date('U') ?? 0,
-                'category'  => str_contains(strtolower($item->get_title() ?? ''), 'announcement') ? 'announcement' : 'news',
-                'excerpt'   => mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…'),
+                'category'  => $is_announcement ? 'announcement' : 'news',
+                'excerpt'   => $excerpt,
                 'thumbnail' => $thumbnail,
-                'content'   => $content_raw,
+                'content'   => $thumbnail ? strip_thumbnail_from_content($content_raw, $thumbnail) : $content_raw,
             ];
         }
     }
@@ -112,5 +159,15 @@ foreach ($all_items as $item) {
 
 usort($unique, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
 $unique = array_slice($unique, 0, 50);
+
+// Cache to /tmp if TTL is set (Render-safe location)
+if ($cache_ttl > 0 && !empty($unique)) {
+    $cache_file = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
+    file_put_contents($cache_file, json_encode($unique));
+}
+
+// Return 4 items for dashboard preview, 50 for full updates page
+$limit  = isset($_GET['preview']) ? 4 : 50;
+$unique = array_slice($unique, 0, $limit);
 
 echo json_encode($unique);
