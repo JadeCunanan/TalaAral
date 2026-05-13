@@ -6,7 +6,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $api_token = getenv('CANVAS_API_TOKEN');
-// Grab the dynamic Canvas URL from your .env
 $canvas_base_url = getenv('CANVAS_BASE_URL');
 
 $file_url  = $_GET['url']      ?? '';
@@ -27,12 +26,10 @@ $final_headers = '';
 $physical_url = '';
 $target_url = $file_url;
 
-// Dynamically determine what host the frontend asked for
 $frontend_host = parse_url($file_url, PHP_URL_HOST);
 $frontend_port = parse_url($file_url, PHP_URL_PORT);
 $spoofed_host = $frontend_port ? $frontend_host . ':' . $frontend_port : ($frontend_host ?: 'localhost');
 
-// Extract the actual internal network host from our .env variable
 $internal_canvas_host = parse_url($canvas_base_url, PHP_URL_HOST);
 
 // Dynamically build the Host header from CANVAS_BASE_URL
