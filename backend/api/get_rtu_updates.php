@@ -14,32 +14,54 @@ $feed_urls    = explode(',', $feed_sources);
 $feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 3);
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 
+/**
+ * Fetch raw RSS XML via cURL with browser-like headers.
+ * Returns false on failure.
+ */
+function fetch_rss_raw(string $url): string|false {
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_ENCODING       => '', // handles gzip/deflate/br automatically
+        CURLOPT_HTTPHEADER     => [
+            'Accept: application/rss+xml, application/xml, text/xml, */*',
+            'Accept-Language: en-US,en;q=0.9',
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Connection: keep-alive',
+        ],
+    ]);
+    $response  = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false || $http_code !== 200) {
+        error_log("fetch_rss_raw failed for $url — HTTP $http_code");
+        return false;
+    }
+    return $response;
+}
+
 $all_items = [];
 
 foreach ($feed_urls as $base_url) {
     for ($page = 1; $page <= $feed_pages; $page++) {
         $feed_url = $page === 1 ? trim($base_url) : trim($base_url) . '?paged=' . $page;
 
+        $raw = fetch_rss_raw($feed_url);
+        if ($raw === false) break; // skip to next feed on cURL failure
+
         $feed = new SimplePie\SimplePie();
-        $feed->set_feed_url($feed_url);
-        $feed->set_cache_duration($cache_ttl);
-        $feed->set_cache_location(sys_get_temp_dir());
-        $feed->set_useragent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
-        $feed->set_timeout(15);
+        $feed->set_raw_data($raw);   // bypass SimplePie's own HTTP fetcher
+        $feed->enable_cache(false);  // raw_data mode doesn't need cache
         $feed->force_feed(true);
-        $feed->set_curl_options([
-            CURLOPT_HTTPHEADER => [
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language: en-US,en;q=0.5',
-                'Accept-Encoding: gzip, deflate, br',
-                'Connection: keep-alive',
-            ]
-        ]);
         $feed->init();
-        $feed->handle_content_type();
 
         if ($feed->error()) {
-            error_log("SimplePie error for $feed_url: " . $feed->error());
+            error_log("SimplePie parse error for $feed_url: " . $feed->error());
             break;
         }
 
