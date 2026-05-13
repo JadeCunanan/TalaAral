@@ -1,156 +1,73 @@
 <?php
 /**
  * get_rtu_updates.php
- * Fetches multiple pages of each RSS feed to work around WordPress's 10-item limit.
+ * Fetches RTU RSS feeds using SimplePie.
  */
 
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
-if (isset($_GET['debug'])) {
-    $test_url = 'https://www.rtu.edu.ph/feed/';
-    $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'TalaAral-Academic-Dashboard/1.0']]);
-    $result = @file_get_contents($test_url, false, $ctx);
-    echo json_encode([
-        'success' => $result !== false,
-        'length' => $result ? strlen($result) : 0,
-        'preview' => $result ? substr($result, 0, 200) : null,
-        'error' => error_get_last()
-    ]);
-    exit;
-}
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-// 1. DYNAMIC CONFIGURATION
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
-define('RTU_FEED_BASES', explode(',', $feed_sources));
-
-define('FEED_PAGES', getenv('RTU_FEED_PAGES') ?: 3);
-define('CACHE_FILE', sys_get_temp_dir() . '/talaaral_rtu_cache.json');
-define('CACHE_TTL', getenv('RTU_CACHE_TTL') ?: 0);
-define('MAX_ITEMS', 50);
-
-// 2. CACHE CHECK
-if (file_exists(CACHE_FILE) && CACHE_TTL > 0) {
-    $age = time() - filemtime(CACHE_FILE);
-    if ($age < CACHE_TTL) {
-        $cached = json_decode(file_get_contents(CACHE_FILE), true);
-        if (is_array($cached)) {
-            echo json_encode(apply_preview($cached));
-            exit;
-        }
-    }
-}
+$feed_urls = explode(',', $feed_sources);
+$cache_ttl = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 
 $all_items = [];
 
-foreach (RTU_FEED_BASES as $base_url) {
-    for ($page = 1; $page <= FEED_PAGES; $page++) {
-        $feed_url = trim($base_url) . '?paged=' . $page;
-        $xml_string = fetch_url($feed_url);
-        if (!$xml_string) continue;
+foreach ($feed_urls as $feed_url) {
+    $feed = new SimplePie\SimplePie();
+    $feed->set_feed_url(trim($feed_url));
+    $feed->set_cache_duration($cache_ttl);
+    $feed->set_cache_location(sys_get_temp_dir());
+    $feed->set_useragent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+    $feed->set_timeout(15);
+    $feed->force_feed(true);
+    $feed->init();
+    $feed->handle_content_type();
 
-        $page_items = parse_rss($xml_string);
+    if ($feed->error()) {
+        error_log("SimplePie error for $feed_url: " . $feed->error());
+        continue;
+    }
 
-        if (empty($page_items)) break;
+    foreach ($feed->get_items() as $item) {
+        $thumbnail = '';
+        $enclosure = $item->get_enclosure();
+        if ($enclosure && str_starts_with($enclosure->get_type() ?? '', 'image/')) {
+            $thumbnail = $enclosure->get_link() ?? '';
+        }
+        if (!$thumbnail) {
+            $thumb = $item->get_thumbnail();
+            $thumbnail = $thumb['url'] ?? '';
+        }
 
-        $all_items = array_merge($all_items, $page_items);
+        $content_raw = $item->get_content() ?? $item->get_description() ?? '';
+
+        $all_items[] = [
+            'title'     => $item->get_title() ?? '',
+            'url'       => $item->get_permalink() ?? '',
+            'date'      => $item->get_date('M j, Y') ?? '',
+            'timestamp' => $item->get_date('U') ?? 0,
+            'category'  => str_contains(strtolower($item->get_title() ?? ''), 'announcement') ? 'announcement' : 'news',
+            'excerpt'   => mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…'),
+            'thumbnail' => $thumbnail,
+            'content'   => $content_raw,
+        ];
     }
 }
 
-// 3. DEDUPLICATION & SORTING
-$seen   = [];
+// DEDUPLICATION & SORTING
+$seen = [];
 $unique = [];
 foreach ($all_items as $item) {
-    if (!isset($seen[$item['url']])) {
+    if (!empty($item['url']) && !isset($seen[$item['url']])) {
         $seen[$item['url']] = true;
         $unique[] = $item;
     }
 }
 
 usort($unique, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
-$unique = array_slice($unique, 0, MAX_ITEMS);
+$unique = array_slice($unique, 0, 50);
 
-if (!empty($unique)) {
-    file_put_contents(CACHE_FILE, json_encode($unique));
-}
-
-echo json_encode(apply_preview($unique));
-exit;
-
-function is_valid_image(string $url): bool {
-    if (empty($url)) return false;
-    $lowUrl = strtolower($url);
-    $banned = ['sustainable-development-goals', 'sdg', 'goal', 'program', 'cropped-', 'logo', 'favicon', 'banner', 'header', 'footer', 'sidebar', 'facebook', 'twitter', 'instagram'];
-
-    foreach ($banned as $word) {
-        if (str_contains($lowUrl, $word)) return false;
-    }
-    return !preg_match('/\/\d+(-\d+)?-e\d*\./', $lowUrl);
-}
-
-function fetch_url(string $url): string|false {
-    $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'TalaAral-Academic-Dashboard/1.0']]);
-    return @file_get_contents($url, false, $ctx);
-}
-
-function strip_thumbnail_from_content(string $content, string $thumbnail_url): string {
-    if (empty($content) || empty($thumbnail_url)) return $content;
-    $thumb_filename = preg_quote(basename(strtok($thumbnail_url, '?#')), '/');
-    $content = preg_replace('/<figure[^>]*>(?:(?!<\/figure>).)*?' . $thumb_filename . '(?:(?!<\/figure>).)*?<\/figure>/si', '', $content, 1);
-    return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
-}
-
-function parse_rss(string $xml_string): array {
-    libxml_use_internal_errors(true);
-    $xml = simplexml_load_string($xml_string, 'SimpleXMLElement', LIBXML_NOCDATA);
-    if ($xml === false) return [];
-
-    $items = [];
-    foreach ($xml->channel->item as $item) {
-        $title = trim((string) $item->title);
-        $url   = trim((string) $item->link);
-        $pub   = trim((string) $item->pubDate);
-        if (empty($title) || empty($url)) continue;
-
-        $timestamp   = strtotime($pub) ?: 0;
-        $ns_content  = $item->children('content', true);
-        $content_raw = isset($ns_content->encoded) ? (string)$ns_content->encoded : '';
-        $potential_images = [];
-
-        $ns_media = $item->children('media', true);
-        if (isset($ns_media->thumbnail)) { $potential_images[] = (string)$ns_media->thumbnail->attributes()['url']; }
-
-        if (isset($item->enclosure)) {
-            $enc = $item->enclosure->attributes();
-            if (str_starts_with((string)$enc['type'], 'image/')) { $potential_images[] = (string)$enc['url']; }
-        }
-
-        if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content_raw, $matches)) {
-            $potential_images = array_merge($potential_images, $matches[1]);
-        }
-
-        $thumbnail = '';
-        foreach ($potential_images as $img_url) {
-            if (is_valid_image($img_url)) {
-                $thumbnail = $img_url;
-                break;
-            }
-        }
-
-        $items[] = [
-            'title'     => $title,
-            'url'       => $url,
-            'date'      => date('M j, Y', $timestamp),
-            'timestamp' => $timestamp,
-            'category'  => str_contains(strtolower($title), 'announcement') ? 'announcement' : 'news',
-            'excerpt'   => mb_strimwidth(strip_tags((string)$item->description), 0, 160, '…'),
-            'thumbnail' => $thumbnail,
-            'content'   => $thumbnail ? strip_thumbnail_from_content($content_raw, $thumbnail) : $content_raw,
-        ];
-    }
-    return $items;
-}
-
-function apply_preview(array $items): array {
-    return (isset($_GET['preview']) && $_GET['preview'] === '1') ? array_slice($items, 0, 3) : $items;
-}
+echo json_encode($unique);
