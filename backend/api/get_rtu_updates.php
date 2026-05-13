@@ -84,7 +84,11 @@ function fetch_url(string $url): string|false {
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
     curl_close($ch);
+    
+    error_log("fetch_url: $url | HTTP $httpCode | Error: $error");
+    
     return ($httpCode === 200) ? $response : false;
 }
 
