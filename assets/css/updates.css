@@ -1,6 +1,5 @@
 /* ============================================================
-   TalaAral Updates CSS
-   Focus: Responsive Grid & Premium Article Reader
+   TalaAral Updates CSS 
 ============================================================ */
 
 /* ── Page Header ── */
@@ -532,7 +531,6 @@
     font-size: 2.5rem;
   }
 
-  /* Modal slides up from bottom like a sheet */
   .article-overlay {
     padding: 0;
     align-items: flex-end;
@@ -542,7 +540,6 @@
     border-radius: 20px 20px 0 0;
     width: 100%;
     max-width: 100%;
-    /* Reserve space for mobile browser chrome (~60px) */
     height: calc(100dvh - 60px);
     max-height: calc(100dvh - 60px);
   }

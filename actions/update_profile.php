@@ -24,7 +24,6 @@ try {
     if (!isset($pdo)) throw new Exception("Database connection failed.");
 
     // 3. Update ONLY the full_name
-    // We remove the email from the SET clause entirely.
     $stmt = $pdo->prepare("UPDATE users SET full_name = ? WHERE id = ?");
     
     if ($stmt->execute([$full_name, $user_id])) {

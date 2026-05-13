@@ -1,3 +1,7 @@
+/* ============================================================
+   TalaAral Sidebar CSS 
+============================================================ */
+
 .sidebar {
   width: var(--sidebar-w);
   background: var(--glass-bg);
@@ -11,7 +15,6 @@
   top: 0;
   left: 0;
   bottom: 0;
-  /* MASSIVE Z-INDEX FIX: Forces the sidebar to float above the sticky topbar on mobile */
   z-index: 9999; 
   overflow-y: auto;
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -41,7 +44,7 @@
   cursor: pointer;
   padding: 4px;
   transition: color 0.2s;
-  margin-top: -4px; /* Optically aligns the X with the top of the logo text */
+  margin-top: -4px;
 }
 
 .mobile-close-btn:hover {
@@ -187,6 +190,6 @@
 ════════════════════════════════ */
 @media (max-width: 960px) {
   .mobile-close-btn {
-    display: block; /* Reveals the close button only on small screens */
+    display: block;
   }
 }

@@ -16,11 +16,6 @@ $user_id = $_SESSION['user_id'];
 $topbar_search_placeholder = "Search specific deadlines...";
 $topbar_search_mode = "local";
 
-/**
- * 1. FETCH DYNAMIC DATA
- * We pull strictly from the tasks table. Announcements have been removed.
- */
-
 // Fetch User Tasks
 $stmtTasks = $pdo->prepare("
     SELECT task_id, title, course, due_date, priority, status 

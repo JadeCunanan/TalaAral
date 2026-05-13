@@ -1,10 +1,13 @@
 <?php
-// We keep the autoload in case you use SimplePie or other tools elsewhere, 
-// but we no longer need the PHPMailer classes here.
+/**
+ * send_mail.php
+ * SMTP is not supported in Render free tier. Emails are send by the Google Script upon receiving POST requests from Render.
+ */
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 function sendTalaAralEmail(string $to, string $subject, string $body) {
-    // This is the URL you copied from the Google Apps Script "Web App" deployment
+    //URL from the Google Script
     $apiUrl = getenv('EMAIL_API_URL');
 
     if (!$apiUrl) {

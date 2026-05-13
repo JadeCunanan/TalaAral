@@ -12,7 +12,7 @@ $token = $_GET['token'];
 $user_data = null;
 
 try {
-    // Validate token and institutional expiry
+    // Validate token
     $stmt = $pdo->prepare("SELECT id, full_name FROM users WHERE reset_token = ? AND reset_expiry > NOW() LIMIT 1");
     $stmt->execute([$token]);
     $user_data = $stmt->fetch();

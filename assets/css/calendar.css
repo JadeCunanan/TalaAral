@@ -7,7 +7,7 @@
   min-width: 0;
 }
 
-/* ── 2. PAGE HEADER (Matched to tasks.css) ── */
+/* ── 2. PAGE HEADER  ── */
 .page-header {
   margin-bottom: 32px;
 }
@@ -22,7 +22,6 @@
 
 .page-header p {
   color: var(--text-secondary);
-  /* This changes it to gray! */
   font-size: 0.95rem;
 }
 
@@ -96,7 +95,6 @@
 }
 
 .cal-cell {
-  /* PREVENT GRID CELL BLOWOUT */
   min-width: 0;
 
   min-height: 110px;
@@ -447,7 +445,7 @@
 
 
 /* ============================================================
-   MOBILE RESPONSIVENESS (The iOS Calendar Trick)
+   MOBILE RESPONSIVENESS 
 ============================================================ */
 
 @media (max-width: 960px) {
@@ -461,8 +459,6 @@
 }
 
 @media (max-width: 600px) {
-
-  /* ── ADDED: HEADER FONT SCALING (Matches tasks.css) ── */
   .page-header {
     margin-bottom: 24px;
   }
@@ -518,7 +514,6 @@
     padding: 2px 4px;
   }
 
-  /* The Dot System: Hide text on mobile, rely on colored dots */
   .cal-events-wrap {
     flex-direction: row;
     flex-wrap: wrap;

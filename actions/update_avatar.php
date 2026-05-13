@@ -4,7 +4,6 @@ session_start();
 error_reporting(0);
 header('Content-Type: application/json');
 
-// Path remains solid
 require_once '../backend/includes/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -26,13 +25,13 @@ try {
         throw new Exception("Database connection failed.");
     }
     
-    // 1. Data Integrity Check (Optional but Pro)
+    // 1. Data Integrity Check
     // Ensures the string actually starts with a data URI scheme
     if (strpos($base64_image, 'data:image/') !== 0) {
          throw new Exception("Invalid image format.");
     }
 
-    // 2. Save the Base64 string directly into the database (Clever Cloud)
+    // 2. Save the Base64 string directly into the database
     // This bypasses Render's file deletion issue entirely.
     $stmt = $pdo->prepare("UPDATE users SET profile_pic = ? WHERE id = ?");
     
@@ -52,7 +51,6 @@ try {
     }
     
 } catch (Exception $e) {
-    // Log the error in the backend for your eyes only
     error_log("TalaAral Avatar Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'System error occurred.']);
 }

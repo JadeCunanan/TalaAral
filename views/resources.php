@@ -141,7 +141,7 @@ $topbar_search_mode = "local";
     <script>
         // ── State ──
         let allResources = [];
-        let currentSearchQuery = ""; // Stores query from the modular Topbar
+        let currentSearchQuery = "";
 
         document.addEventListener('DOMContentLoaded', () => {
             // Reveal animations
@@ -273,7 +273,6 @@ $topbar_search_mode = "local";
                 const fileCount = group.files.length;
                 const filesHtml = group.files.map(file => {
                     const proxyUrl = `/backend/api/canvas_proxy.php?url=${encodeURIComponent(file.url)}&filename=${encodeURIComponent(file.title)}`;
-                    // Added excel to isPreviewable so clicking the card opens the fallback modal instead of instant download
                     const isPreviewable = ['pdf', 'image', 'ppt', 'word', 'excel'].includes(file.type);
 
                     return `
@@ -318,7 +317,6 @@ $topbar_search_mode = "local";
 
         function handleFileClick(card) {
             const d = card.dataset;
-            // Intercept Office files and PDFs/Images to open the Modal
             if (['pdf', 'image', 'ppt', 'word', 'excel'].includes(d.type)) {
                 // We pass the PROXY url so that the download button inside the modal works reliably
                 openPreview(d.proxy, d.title, d.courseName, d.type);

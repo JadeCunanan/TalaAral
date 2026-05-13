@@ -84,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         ]);
 
         // 7. Send Verification Email using dynamic APP_URL
-        // Note: verify.php remains in the actions folder for logic separation
         $verification_link = $app_url . "/actions/verify.php?token=" . $verification_token;
 
         $subject = "Verify Your TalaAral Account";

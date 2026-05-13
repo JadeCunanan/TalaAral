@@ -6,7 +6,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $api_token = getenv('CANVAS_API_TOKEN');
-// Grab the dynamic Canvas URL from your .env
 $canvas_base_url = getenv('CANVAS_BASE_URL');
 
 $file_url  = $_GET['url']      ?? '';
@@ -46,13 +45,12 @@ for ($i = 0; $i < $max_redirects; $i++) {
 
     // PHYSICAL ROUTING: Translate all internal hostnames to the ngrok/tunnel host
     $physical_url = str_replace($internal_hosts, $ngrok_host, $target_url);
-
     $ch = curl_init($physical_url);
 
     $headers = [
         "Authorization: Bearer {$api_token}",
         "Host: {$ngrok_host}",              // Dynamically uses ngrok/tunnel domain from .env
-        "ngrok-skip-browser-warning: true"  // Bypasses the annoying ngrok landing page
+        "ngrok-skip-browser-warning: true"  // Bypasses the ngrok landing page
     ];
 
     curl_setopt_array($ch, [
@@ -85,7 +83,6 @@ for ($i = 0; $i < $max_redirects; $i++) {
 
         $target_url = $redirect_url;
 
-        // Update spoofed host for the next hop
         $parsed_redirect = parse_url($redirect_url);
         $new_host = $parsed_redirect['host'] ?? '';
 

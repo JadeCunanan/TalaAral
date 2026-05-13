@@ -11,7 +11,7 @@ require_once '../backend/includes/db.php';
 
 $user_id = $_SESSION['user_id'];
 
-// ── Configure the Modular Topbar ──
+// --- Configure the Modular Topbar for this specific page ---
 $topbar_search_placeholder = "Search tasks or courses...";
 $topbar_search_mode = "local"; 
 
@@ -97,7 +97,7 @@ function formatTaskDate(?string $datetime_string, string $status): string
             font-family: 'Momo Trust Display', sans-serif;
             font-weight: normal;
         }
-        /* Style for the Task Search Empty State */
+
         .search-empty {
             display: none;
             padding: 40px 20px;

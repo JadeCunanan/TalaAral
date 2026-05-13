@@ -8,7 +8,7 @@ session_unset();
 session_destroy();
 
 // 3. Redirect back using the Clean URL convention
-// This triggers your .htaccess rule to show views/login.php without the .php extension
+// This triggers the .htaccess rule to show views/login.php without the .php extension
 header("Location: ../login"); 
 exit();
 ?>

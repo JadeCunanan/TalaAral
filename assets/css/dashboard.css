@@ -1,8 +1,7 @@
 /* ============================================================
-   TalaAral Dashboard — assets/css/dashboard.css
-   Theme: Light Mode Navy & Gold (matches index.css)
-   Fonts: Momo Trust Display + Inter
+   TalaAral Dashboard CSS 
 ============================================================ */
+
 
 :root {
   --navy: #001a33;
@@ -358,7 +357,7 @@ body {
     color: #ef4444;
     text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
-/* If you want to highlight the stat card itself when overdue exists */
+
 .stat-card:has(#stat-overdue:not(:contains('0'))) {
     border: 1px solid rgba(239, 68, 68, 0.3);
     background: rgba(239, 68, 68, 0.02);
@@ -494,7 +493,6 @@ body {
   justify-content: center;
   font-size: 0.9rem;
   flex-shrink: 0;
-  /* Default (unknown file) */
   background: rgba(100, 116, 139, 0.1);
   color: var(--text-secondary);
 }
@@ -546,7 +544,6 @@ body {
   padding: 2px 6px;
   border-radius: 20px;
   letter-spacing: 0.04em;
-  /* Default */
   background: rgba(100, 116, 139, 0.1);
   color: var(--text-secondary);
 }
@@ -610,7 +607,7 @@ body {
 .qf-row input,
 .qf-row select {
   width: 100%;
-  max-width: 100%; /* Prevents breaking grid */
+  max-width: 100%;
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -738,15 +735,12 @@ body {
 /* ════════════════════════════════
    RESPONSIVE (Optimized for Mobile)
 ════════════════════════════════ */
-
-/* Standard Desktop */
 @media (max-width: 1200px) {
   .stats-row {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Tablets & Small Laptops */
 @media (max-width: 960px) {
   .sidebar {
     transform: translateX(-100%);
@@ -766,18 +760,15 @@ body {
   }
 }
 
-/* Large Phones & Small Tablets */
 @media (max-width: 768px) {
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }
-  /* Makes the 5th card stretch across the bottom instead of leaving a hole */
   .stats-row .stat-card:last-child {
     grid-column: span 2;
   }
 }
 
-/* Standard Phones */
 @media (max-width: 600px) {
   .content {
     padding: 24px 16px;
@@ -796,7 +787,6 @@ body {
   }
 }
 
-/* Small Phones (iPhone SE, etc.) */
 @media (max-width: 480px) {
   .content {
     padding: 16px 12px;
@@ -813,7 +803,7 @@ body {
   }
   .stat-card {
     padding: 16px;
-    flex-direction: column; /* Stacks the icon above the text */
+    flex-direction: column; 
     align-items: flex-start;
     gap: 12px;
   }

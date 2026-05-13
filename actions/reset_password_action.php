@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Database connection path remains solid
 require_once '../backend/includes/db.php'; 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_password'])) {
@@ -25,8 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_password'])) {
     }
 
     try {
-        // 2. Token Verification
-        // Note: NOW() works perfectly on Clever Cloud as long as the DB timezone is synced
+
         $stmt = $pdo->prepare("SELECT id FROM users WHERE reset_token = ? AND reset_expiry > NOW() LIMIT 1");
         $stmt->execute([$token]);
         $user = $stmt->fetch();

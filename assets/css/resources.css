@@ -1,12 +1,11 @@
 /* ============================================================
-   TalaAral Resources — assets/css/resources.css
-   Theme: Light Mode Navy & Gold (matches dashboard.css)
+   TalaAral Resources CSS 
 ============================================================ */
+
 
 /* ── Prevent Flexbox Blowout globally for this page ── */
 .main-wrap {
   min-width: 0;
-  /* Ensures the flex container doesn't stretch past the screen width */
 }
 
 /* ── Page Header ── */
@@ -48,24 +47,20 @@
 /* ── Program Tabs ── */
 .program-tabs-wrap {
   margin-bottom: 16px;
-  /* Allow horizontal scroll on mobile for tabs */
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* Hide scrollbar Firefox */
 }
 
 .program-tabs-wrap::-webkit-scrollbar {
   display: none;
-  /* Hide scrollbar Chrome/Safari */
 }
 
 .program-tabs {
   display: flex;
   gap: 8px;
   width: max-content;
-  /* Forces tabs to stay in one line */
 }
 
 .program-tab {
@@ -101,13 +96,11 @@
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
-  /* Allow horizontal scroll on mobile */
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 4px;
-  /* Room for focus rings */
 }
 
 .filter-bar::-webkit-scrollbar {
@@ -176,7 +169,6 @@
   position: relative;
   overflow: hidden;
   max-width: 100%;
-  /* Keeps it inside grid */
 }
 
 .resource-card::before {
@@ -290,7 +282,6 @@
 .rc-body {
   flex: 1;
   min-width: 0;
-  /* Crucial for text ellipsis inside flexbox */
 }
 
 .rc-title {
@@ -422,7 +413,6 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   z-index: 10000;
-  /* Ensure it's above the 9999 mobile sidebar */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -619,7 +609,6 @@
   .preview-modal {
     max-height: 95vh;
     height: 95vh;
-    /* Force a static boundary */
   }
 }
 

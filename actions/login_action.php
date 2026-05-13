@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
     if (empty($email) || empty($password)) {
         $_SESSION['error_login'] = "Please enter both your student email and password.";
-        header("Location: ../login"); // Updated to use Clean URL
+        header("Location: ../login");
         exit();
     }
 
@@ -36,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             $_SESSION['year_level']           = $user['year_level'] ?? '';
             $_SESSION['profile_pic']          = $user['profile_pic'] ?? '';
 
-            // Redirect to the clean URL handled by your .htaccess
             header("Location: ../dashboard"); 
             exit();
 

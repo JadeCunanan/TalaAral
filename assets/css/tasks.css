@@ -1,3 +1,7 @@
+/* ============================================================
+   TalaAral Tasks CSS 
+============================================================ */
+
 .page-header {
   margin-bottom: 32px;
 }
@@ -682,13 +686,9 @@
 }
 
 @media (max-width: 600px) {
-
-  /* ── 1. ENHANCED MOBILE HEADER ── */
   .page-header {
     flex-direction: column !important;
-    /* Overrides the inline style */
     align-items: flex-start !important;
-    /* Overrides the inline style */
     gap: 16px;
     margin-bottom: 24px;
   }
@@ -705,11 +705,9 @@
     width: 100%;
     justify-content: center;
     margin-bottom: 0 !important;
-    /* Resets inline margin */
     padding: 12px 0;
   }
 
-  /* ── 2. GENERAL SQUISHING ── */
   .priority-legend {
     bottom: 16px;
     right: 16px;

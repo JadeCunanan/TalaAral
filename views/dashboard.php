@@ -19,8 +19,6 @@ if (strpos($full_name, ',') !== false) {
 
 $hour = date('H');
 $greeting = $hour < 12 ? 'Good Morning' : ($hour < 18 ? 'Good Afternoon' : 'Good Evening');
-
-// --- Directly remove search for code clarity ---
 $show_topbar_search = false;
 ?>
 <!DOCTYPE html>

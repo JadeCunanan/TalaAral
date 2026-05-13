@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 // 1. DYNAMIC CONFIGURATION
-// We check .env for overrides, otherwise fall back to your reliable defaults
+// We check .env for overrides, otherwise fall back to reliable defaults
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcements/feed/';
 define('RTU_FEED_BASES', explode(',', $feed_sources));
 
@@ -66,8 +66,6 @@ if (!empty($unique)) {
 
 echo json_encode(apply_preview($unique));
 exit;
-
-// ── Helpers (Logic remains your original excellent work) ────────────────
 
 function is_valid_image(string $url): bool {
     if (empty($url)) return false;

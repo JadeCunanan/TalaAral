@@ -51,7 +51,6 @@ try {
         exit();
     }
 
-    // --- PRO TIP: Password Reuse Check ---
     if (password_verify($new_password, $user['password_hash'])) {
         echo json_encode(['success' => false, 'error' => 'New password cannot be the same as your old password.']);
         exit();

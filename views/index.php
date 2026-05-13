@@ -428,7 +428,7 @@ if (isset($_SESSION['user_id'])) {
                 Object.values(modals).forEach(m => {
                     if (m.overlay) m.overlay.classList.remove('active');
                 });
-                document.body.style.overflow = ''; // Restore scrolling
+                document.body.style.overflow = '';
             };
 
             Object.values(modals).forEach(m => {
@@ -439,7 +439,7 @@ if (isset($_SESSION['user_id'])) {
                     if (trigger) {
                         trigger.addEventListener('click', (e) => {
                             e.preventDefault();
-                            closeAllModals(); // Close others before opening
+                            closeAllModals(); 
                             m.overlay.classList.add('active');
                             document.body.style.overflow = 'hidden';
                         });

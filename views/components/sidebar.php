@@ -1,5 +1,4 @@
 <?php
-// Remove the .php extension from the current file name so we can highlight the active menu item cleanly
 $current_page = str_replace('.php', '', basename($_SERVER['PHP_SELF']));
 
 // Display name fallback chain

@@ -239,7 +239,6 @@ $topbar_search_mode = "local";
             document.getElementById('articleTitle').textContent = post.title;
             document.getElementById('articleOriginalLink').href = post.url;
 
-            // Fixed: catClass/catLabel vars used so badge renders with correct colour
             document.getElementById('articleMeta').innerHTML = `
                 <span class="category-badge ${catClass}">${catLabel}</span>
                 <span class="article-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>`;

@@ -1,4 +1,10 @@
 <?php
+/**
+ * get_canvas_data.php
+ * Fetches courses and files through Canvas LMS REST API which is tunneled into ngrok bridge to make it accessible to Render.
+ */
+
+
 session_start();
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
@@ -20,10 +26,9 @@ if (!$api_token) {
     exit();
 }
 
-// 1. Dynamically identify the network hosts from CANVAS_BASE_URL
-// This ensures compatibility with ngrok, Cloudflare tunnels, and local Docker
+// This ensures compatibility with ngrok and local Docker
 $internal_canvas_host = parse_url($base_url, PHP_URL_HOST);
-$frontend_host = $internal_canvas_host; // Always use the ngrok/tunnel host from .env
+$frontend_host = $internal_canvas_host; 
 
 try {
     // ── Fetch active courses JOIN with programs ──
@@ -65,8 +70,8 @@ try {
             CURLOPT_HTTPHEADER     => [
                 "Authorization: Bearer {$api_token}",
                 "Content-Type: application/json",
-                "Host: {$frontend_host}",           // Always the ngrok/tunnel domain from .env
-                "ngrok-skip-browser-warning: true"  // Bypasses ngrok interstitial page
+                "Host: {$frontend_host}",         
+                "ngrok-skip-browser-warning: true"  
             ],
             CURLOPT_TIMEOUT        => 10,
             CURLOPT_SSL_VERIFYPEER => false,

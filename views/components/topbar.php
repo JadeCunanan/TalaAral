@@ -116,7 +116,7 @@ $search_placeholder = isset($topbar_search_placeholder) ? $topbar_search_placeho
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        // Mobile Sidebar Toggle (Always Needed)
+        // Mobile Sidebar Toggle
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
         if (menuToggle && sidebar) {
