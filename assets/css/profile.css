@@ -5,25 +5,24 @@
 .profile-header {
   margin-bottom: 24px;
   padding: 0 10px;
-  max-width: 1200px; /* Constrains header to match grid */
+  max-width: 1200px; 
   margin-left: auto;
   margin-right: auto;
 }
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 320px 1fr; /* Slightly slimmer left column */
-  gap: 28px; /* Tighter gap for better visual unity */
+  grid-template-columns: 320px 1fr; 
+  gap: 28px; 
   align-items: start;
-  max-width: 1200px; /* Prevents ultra-wide stretching */
-  margin: 0 auto; /* Centers the grid */
+  max-width: 1200px; 
+  margin: 0 auto; 
 }
 
 .left-column-stack {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  /* THE MAGIC: Sticks the card to the screen when scrolling */
   position: sticky;
   top: 100px;
 }
@@ -85,7 +84,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 24px; /* Refined padding */
+  padding: 48px 24px; 
 }
 
 .avatar-editor-wrap {
@@ -286,12 +285,11 @@
   }
   .left-column-stack {
     position: relative;
-    top: 0; /* Disables sticky on mobile so it doesn't break scrolling */
+    top: 0;
   } 
 }
 
 @media (max-width: 600px) {
-  /* Force side-by-side forms into a single vertical column */
   .qf-row {
     display: flex;
     flex-direction: column;
@@ -299,10 +297,9 @@
   }
   
   .profile-header h1 {
-    font-size: 1.8rem !important; /* Scale down the main title */
+    font-size: 1.8rem !important; 
   }
   
-  /* Give the content breathing room */
   .settings-content-card {
     padding: 24px 16px;
   }
@@ -311,7 +308,6 @@
     padding: 32px 16px;
   }
   
-  /* Full-width tap targets for save buttons */
   .form-actions {
     justify-content: center;
   }
