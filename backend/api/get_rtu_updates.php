@@ -2,24 +2,26 @@
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
+ * Supports ?page= for paginated Load More on university-news feed.
  */
 
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
-require_once __DIR__ . '/../vendor/autoload.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    // Allow direct API calls but log unauthorized attempts
-    session_start();
-}
+require_once __DIR__ . '/../vendor/autoload.php';
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/,https://www.rtu.edu.ph/university-news/feed/';
 $feed_urls    = array_map('trim', explode(',', $feed_sources));
-$feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 1);
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 $cache_file   = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
 $max_items    = 50;
+
+// ?page= param — 1 = default feeds, 2+ = paginate university-news only
+$requested_page = max(1, (int)($_GET['page'] ?? 1));
+$is_preview     = isset($_GET['preview']);
+$is_load_more   = $requested_page > 1;
 
 function fetch_rss_raw(string $url): string|false {
     $ch = curl_init();
@@ -69,31 +71,7 @@ function strip_thumbnail_from_content(string $content, string $thumbnail_url): s
     return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
 }
 
-// Load existing accumulative cache
-$cached_items = [];
-if (file_exists($cache_file)) {
-    $decoded = json_decode(file_get_contents($cache_file), true);
-    if (is_array($decoded)) {
-        $cached_items = $decoded;
-    }
-}
-
-// Serve from cache if still fresh
-if ($cache_ttl > 0 && !empty($cached_items) && (time() - filemtime($cache_file)) < $cache_ttl) {
-    $limit = isset($_GET['preview']) ? 4 : 50;
-    echo json_encode(array_slice($cached_items, 0, $limit));
-    exit;
-}
-
-// Fetch each feed via cURL then pass raw XML to SimplePie
-$fresh_items = [];
-
-foreach ($feed_urls as $base_url) {
-    $is_announcement_feed = str_contains($base_url, 'announcement');
-
-    $raw = fetch_rss_raw($base_url);
-    if ($raw === false) continue; // skip to next feed, don't stop entirely
-
+function parse_feed(string $raw, bool $is_announcement_feed): array {
     $feed = new SimplePie\SimplePie();
     $feed->set_raw_data($raw);
     $feed->enable_cache(false);
@@ -101,17 +79,16 @@ foreach ($feed_urls as $base_url) {
     $feed->init();
 
     if ($feed->error()) {
-        error_log("SimplePie parse error for $base_url: " . $feed->error());
-        continue;
+        error_log("SimplePie parse error: " . $feed->error());
+        return [];
     }
 
-    $items = $feed->get_items(0, $max_items);
-    if (empty($items)) continue;
+    $items  = $feed->get_items(0, 50);
+    $result = [];
 
     foreach ($items as $item) {
         $title = html_entity_decode(trim($item->get_title() ?? ''));
         $url   = trim($item->get_permalink() ?? '');
-
         if (empty($title) || empty($url)) continue;
 
         $content_raw      = $item->get_content() ?? $item->get_description() ?? '';
@@ -121,40 +98,30 @@ foreach ($feed_urls as $base_url) {
         if ($enclosure && str_starts_with($enclosure->get_type() ?? '', 'image/')) {
             $potential_images[] = $enclosure->get_link() ?? '';
         }
-
         $thumb = $item->get_thumbnail();
-        if (!empty($thumb['url'])) {
-            $potential_images[] = $thumb['url'];
-        }
-
+        if (!empty($thumb['url'])) $potential_images[] = $thumb['url'];
         if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content_raw, $matches)) {
             $potential_images = array_merge($potential_images, $matches[1]);
         }
 
         $thumbnail = '';
         foreach ($potential_images as $img_url) {
-            if (is_valid_image($img_url)) {
-                $thumbnail = $img_url;
-                break;
-            }
+            if (is_valid_image($img_url)) { $thumbnail = $img_url; break; }
         }
 
         $item_cats = $item->get_categories();
         $cat_names = [];
         if ($item_cats) {
-            foreach ($item_cats as $cat) {
-                $cat_names[] = strtolower($cat->get_label() ?? '');
-            }
+            foreach ($item_cats as $cat) $cat_names[] = strtolower($cat->get_label() ?? '');
         }
         $is_announcement = $is_announcement_feed
             || in_array('announcements', $cat_names)
             || in_array('announcement', $cat_names)
             || str_contains(strtolower($title), 'announcement');
 
-        $raw_desc = html_entity_decode($item->get_description() ?? '');
-        $excerpt  = mb_strimwidth(strip_tags($raw_desc), 0, 160, '…');
+        $excerpt = mb_strimwidth(strip_tags(html_entity_decode($item->get_description() ?? '')), 0, 160, '…');
 
-        $fresh_items[] = [
+        $result[] = [
             'id'        => md5($url),
             'title'     => $title,
             'url'       => $url,
@@ -166,27 +133,93 @@ foreach ($feed_urls as $base_url) {
             'content'   => $thumbnail ? strip_thumbnail_from_content($content_raw, $thumbnail) : $content_raw,
         ];
     }
+
+    return $result;
 }
 
-// Merge fresh into accumulated cache
-$merged = [];
-foreach ($fresh_items as $item) {
-    $merged[$item['url']] = $item;
-}
-foreach ($cached_items as $item) {
-    if (!isset($merged[$item['url']])) {
-        $merged[$item['url']] = $item;
+// -------------------------------------------------------
+// LOAD MORE — fetch a specific page of university-news
+// Returns only new items not already known by the client
+// -------------------------------------------------------
+if ($is_load_more) {
+    $known_ids = [];
+    if (!empty($_GET['known'])) {
+        // Frontend sends comma-separated md5 IDs it already has
+        $known_ids = array_flip(explode(',', $_GET['known']));
     }
+
+    $paginated_url = 'https://www.rtu.edu.ph/university-news/feed/?paged=' . $requested_page;
+    $raw = fetch_rss_raw($paginated_url);
+
+    if ($raw === false) {
+        echo json_encode(['items' => [], 'has_more' => false, 'error' => 'fetch_failed']);
+        exit;
+    }
+
+    $new_items = parse_feed($raw, false);
+
+    // Filter out items the frontend already has
+    $new_items = array_values(array_filter($new_items, fn($i) => !isset($known_ids[$i['id']])));
+
+    // If all items were duplicates, no more pages
+    $has_more = count($new_items) > 0 && $requested_page < 5; // RTU has 5 pages
+
+    // Merge into accumulative cache
+    $cached_items = [];
+    if (file_exists($cache_file)) {
+        $decoded = json_decode(file_get_contents($cache_file), true);
+        if (is_array($decoded)) $cached_items = $decoded;
+    }
+    $merged = [];
+    foreach ($new_items as $item) $merged[$item['url']] = $item;
+    foreach ($cached_items as $item) {
+        if (!isset($merged[$item['url']])) $merged[$item['url']] = $item;
+    }
+    $merged = array_values($merged);
+    usort($merged, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
+    $merged = array_slice($merged, 0, 100);
+    file_put_contents($cache_file, json_encode($merged));
+
+    echo json_encode(['items' => $new_items, 'has_more' => $has_more]);
+    exit;
 }
 
+// -------------------------------------------------------
+// INITIAL LOAD — fetch all feeds, serve cache if fresh
+// -------------------------------------------------------
+$cached_items = [];
+if (file_exists($cache_file)) {
+    $decoded = json_decode(file_get_contents($cache_file), true);
+    if (is_array($decoded)) $cached_items = $decoded;
+}
+
+if ($cache_ttl > 0 && !empty($cached_items) && (time() - filemtime($cache_file)) < $cache_ttl) {
+    $limit = $is_preview ? 4 : 50;
+    echo json_encode(array_slice($cached_items, 0, $limit));
+    exit;
+}
+
+$fresh_items = [];
+foreach ($feed_urls as $base_url) {
+    $raw = fetch_rss_raw($base_url);
+    if ($raw === false) continue;
+    $parsed = parse_feed($raw, str_contains($base_url, 'announcement'));
+    $fresh_items = array_merge($fresh_items, $parsed);
+}
+
+// Merge fresh + cache
+$merged = [];
+foreach ($fresh_items as $item) $merged[$item['url']] = $item;
+foreach ($cached_items as $item) {
+    if (!isset($merged[$item['url']])) $merged[$item['url']] = $item;
+}
 $merged = array_values($merged);
 usort($merged, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
 $merged = array_slice($merged, 0, 100);
 
-// Save accumulative cache
 if (!empty($merged)) {
     file_put_contents($cache_file, json_encode($merged));
 }
 
-$limit = isset($_GET['preview']) ? 4 : 50;
+$limit = $is_preview ? 4 : 50;
 echo json_encode(array_slice($merged, 0, $limit));
