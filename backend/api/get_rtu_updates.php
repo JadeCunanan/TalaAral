@@ -2,6 +2,7 @@
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
+ * Uses accumulative caching to preserve older posts.
  */
 
 header('Content-Type: application/json');
@@ -11,8 +12,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/,https://www.rtu.edu.ph/university-news/feed/';
 $feed_urls    = explode(',', $feed_sources);
-$feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 3);
+$feed_pages   = (int)(getenv('RTU_FEED_PAGES') ?: 1);
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
+$cache_file   = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
 
 function fetch_rss_raw(string $url): string|false {
     $ch = curl_init();
@@ -62,19 +64,25 @@ function strip_thumbnail_from_content(string $content, string $thumbnail_url): s
     return preg_replace('/<img[^>]+' . $thumb_filename . '[^>]*>/i', '', $content, 1);
 }
 
-// Serve from cache if still fresh
-$cache_file = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
-if ($cache_ttl > 0 && file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_ttl) {
-    $cached = json_decode(file_get_contents($cache_file), true);
-    if (!empty($cached)) {
-        $limit = isset($_GET['preview']) ? 4 : 50;
-        echo json_encode(array_slice($cached, 0, $limit));
-        exit;
+// Load existing cache (accumulative — don't discard old posts)
+$cached_items = [];
+if (file_exists($cache_file)) {
+    $decoded = json_decode(file_get_contents($cache_file), true);
+    if (is_array($decoded)) {
+        $cached_items = $decoded;
     }
 }
 
-$all_items = [];
-$seen      = [];
+// Serve from cache if still fresh
+if ($cache_ttl > 0 && !empty($cached_items) && file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_ttl) {
+    $limit = isset($_GET['preview']) ? 4 : 50;
+    echo json_encode(array_slice($cached_items, 0, $limit));
+    exit;
+}
+
+// Fetch fresh items from RSS
+$fresh_items = [];
+$seen        = [];
 
 foreach ($feed_urls as $base_url) {
     $is_announcement_feed = str_contains(trim($base_url), 'announcement');
@@ -108,7 +116,6 @@ foreach ($feed_urls as $base_url) {
             $url     = trim($item->get_permalink() ?? '');
             $excerpt = mb_strimwidth(strip_tags($item->get_description() ?? ''), 0, 160, '…');
 
-            // Only skip if truly no title or URL
             if (empty($title) || empty($url)) continue;
 
             $page_urls[] = $url;
@@ -138,7 +145,6 @@ foreach ($feed_urls as $base_url) {
                 }
             }
 
-            // Determine category from feed URL or item categories
             $item_cats = $item->get_categories();
             $cat_names = [];
             if ($item_cats) {
@@ -151,7 +157,7 @@ foreach ($feed_urls as $base_url) {
                 || in_array('announcement', $cat_names)
                 || str_contains(strtolower($title), 'announcement');
 
-            $all_items[] = [
+            $fresh_items[] = [
                 'title'     => $title,
                 'url'       => $url,
                 'date'      => $item->get_date('M j, Y') ?? '',
@@ -163,7 +169,7 @@ foreach ($feed_urls as $base_url) {
             ];
         }
 
-        // If RTU ignored ?paged and returned same URLs, stop paginating
+        // Stop paginating if RTU returns same URLs again
         if ($page > 1 && !empty($page_urls)) {
             $already_seen = array_filter($page_urls, fn($u) => isset($seen[$u]));
             if (count($already_seen) === count($page_urls)) break;
@@ -175,22 +181,27 @@ foreach ($feed_urls as $base_url) {
     }
 }
 
-// Deduplicate & sort
-$unique = [];
-foreach ($all_items as $item) {
-    if (!empty($item['url']) && !isset($unique[$item['url']])) {
-        $unique[$item['url']] = $item;
+// Merge fresh items with cached items (fresh takes priority for updated content)
+$merged = [];
+foreach ($fresh_items as $item) {
+    $merged[$item['url']] = $item;
+}
+// Add old cached items that aren't in the fresh fetch (preserves older posts)
+foreach ($cached_items as $item) {
+    if (!isset($merged[$item['url']])) {
+        $merged[$item['url']] = $item;
     }
 }
-$unique = array_values($unique);
-usort($unique, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
-$unique = array_slice($unique, 0, 50);
 
-// Write to cache
-if ($cache_ttl > 0 && !empty($unique)) {
-    file_put_contents($cache_file, json_encode($unique));
+$merged = array_values($merged);
+usort($merged, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
+$merged = array_slice($merged, 0, 100); // keep up to 100 accumulated posts
+
+// Save accumulative cache
+if (!empty($merged)) {
+    file_put_contents($cache_file, json_encode($merged));
 }
 
 // Return 4 for dashboard preview, 50 for full page
 $limit = isset($_GET['preview']) ? 4 : 50;
-echo json_encode(array_slice($unique, 0, $limit));
+echo json_encode(array_slice($merged, 0, $limit));
