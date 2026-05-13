@@ -1,5 +1,4 @@
 <?php
-
 /**
  * get_rtu_updates.php
  * Fetches RTU RSS feeds using SimplePie.
@@ -11,7 +10,7 @@ header('X-Content-Type-Options: nosniff');
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-require_once _DIR_ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/,https://www.rtu.edu.ph/university-news/feed/';
 $feed_urls    = array_map('trim', explode(',', $feed_sources));
@@ -36,7 +35,7 @@ function fetch_rss_raw(string $url): string|false
         CURLOPT_ENCODING       => '',
         CURLOPT_HEADER         => true,
         CURLOPT_HTTPHEADER     => [
-            'Accept: application/rss+xml, application/xml, text/xml, /',
+            'Accept: application/rss+xml, application/xml, text/xml, */*',
             'Accept-Language: en-US,en;q=0.9',
             'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'Connection: keep-alive',
