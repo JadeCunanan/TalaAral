@@ -7,6 +7,19 @@
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
+if (isset($_GET['debug'])) {
+    $test_url = 'https://www.rtu.edu.ph/feed/';
+    $ctx = stream_context_create(['http' => ['timeout' => 15, 'user_agent' => 'TalaAral-Academic-Dashboard/1.0']]);
+    $result = @file_get_contents($test_url, false, $ctx);
+    echo json_encode([
+        'success' => $result !== false,
+        'length' => $result ? strlen($result) : 0,
+        'preview' => $result ? substr($result, 0, 200) : null,
+        'error' => error_get_last()
+    ]);
+    exit;
+}
+
 // 1. DYNAMIC CONFIGURATION
 $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https://www.rtu.edu.ph/category/announcement/feed/';
 define('RTU_FEED_BASES', explode(',', $feed_sources));
