@@ -5,7 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// --- Configure the Modular Topbar for this specific page ---
 $topbar_search_placeholder = "Search RTU news and articles...";
 $topbar_search_mode = "local";
 ?>
@@ -70,12 +69,6 @@ $topbar_search_mode = "local";
 
                 <div class="updates-grid" id="updatesGrid" style="display:none;"></div>
 
-                <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
-                    <button class="btn-load-more" id="loadMoreBtn">
-                        <i class="fa-solid fa-rotate"></i> Load More
-                    </button>
-                </div>
-
             </main>
         </div>
     </div>
@@ -106,11 +99,7 @@ $topbar_search_mode = "local";
         let filtered = [];
         let visibleCount = 9;
         let currentSearchQuery = "";
-        let currentFeedPage = 1; // tracks which RTU feed page we've loaded
-        let isFetchingMore = false; // prevents double-clicks
-        let noMorePages = false; // stops Load More when RTU runs out
         const PAGE_SIZE = 9;
-        const MAX_FEED_PAGES = 5; // RTU has 5 pages
 
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -134,27 +123,6 @@ $topbar_search_mode = "local";
                 });
             });
 
-            document.getElementById('loadMoreBtn').addEventListener('click', () => {
-                // If we still have locally loaded posts to show, show them first
-                if (visibleCount < filtered.length) {
-                    visibleCount += PAGE_SIZE;
-                    renderGrid();
-                    return;
-                }
-
-                // Otherwise fetch the next RTU feed page
-                if (isFetchingMore || noMorePages) return;
-
-                const nextPage = currentFeedPage + 1;
-                if (nextPage > MAX_FEED_PAGES) {
-                    noMorePages = true;
-                    document.getElementById('loadMoreWrap').style.display = 'none';
-                    return;
-                }
-
-                fetchMoreFromRTU(nextPage);
-            });
-
             document.getElementById('articleOverlay').addEventListener('click', function(e) {
                 if (e.target === this) closeArticle();
             });
@@ -162,10 +130,6 @@ $topbar_search_mode = "local";
                 if (e.key === 'Escape') closeArticle();
             });
         });
-
-        function loadResources() {
-            loadUpdates();
-        }
 
         function loadUpdates() {
             fetch('/backend/api/get_rtu_updates.php')
@@ -194,96 +158,31 @@ $topbar_search_mode = "local";
                 });
         }
 
-        function fetchMoreFromRTU(page) {
-            if (isFetchingMore) return;
-            isFetchingMore = true;
-
-            const btn = document.getElementById('loadMoreBtn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
-            btn.disabled = true;
-
-            // Send known IDs so backend can filter out duplicates
-            const knownIds = allPosts.map(p => p.id).join(',');
-            const url = `/backend/api/get_rtu_updates.php?page=${page}&known=${encodeURIComponent(knownIds)}`;
-
-            fetch(url)
-                .then(r => {
-                    if (!r.ok) throw new Error('Network response was not ok');
-                    return r.json();
-                })
-                .then(data => {
-                    if (data.error || !Array.isArray(data.items)) {
-                        throw new Error(data.error || 'Invalid response');
-                    }
-
-                    if (data.items.length > 0) {
-                        // Merge new items into allPosts
-                        const existingIds = new Set(allPosts.map(p => p.id));
-                        const truly_new = data.items.filter(p => !existingIds.has(p.id));
-                        allPosts = [...allPosts, ...truly_new];
-                        currentFeedPage = page;
-                        visibleCount += truly_new.length;
-                        applyFilters();
-                    }
-
-                    // Check if there are more pages
-                    if (!data.has_more || page >= MAX_FEED_PAGES) {
-                        noMorePages = true;
-                        document.getElementById('loadMoreWrap').style.display = 'none';
-                    }
-                })
-                .catch(err => {
-                    console.error('Load more error:', err);
-                    // Don't crash — just show a subtle error and re-enable button
-                    btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Try again';
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                    }, 2000);
-                })
-                .finally(() => {
-                    isFetchingMore = false;
-                    btn.disabled = false;
-                    btn.innerHTML = originalHTML;
-                });
-        }
-
         function applyFilters() {
             const activeCat = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
-
             filtered = allPosts.filter(post => {
                 const matchCat = activeCat === 'all' || post.category === activeCat;
                 const matchSearch = post.title.toLowerCase().includes(currentSearchQuery) ||
                     (post.excerpt && post.excerpt.toLowerCase().includes(currentSearchQuery));
                 return matchCat && matchSearch;
             });
-
             renderGrid();
         }
 
         function renderGrid() {
             const grid = document.getElementById('updatesGrid');
-            const loadMore = document.getElementById('loadMoreWrap');
-
             if (filtered.length === 0) {
                 grid.innerHTML = emptyState('No matches found.', 'fa-magnifying-glass');
-                loadMore.style.display = 'none';
                 return;
             }
-
             const visible = filtered.slice(0, visibleCount);
             grid.innerHTML = visible.map(post => buildCard(post)).join('');
-
             grid.querySelectorAll('.update-card').forEach((card, index) => {
                 card.addEventListener('click', (e) => {
                     e.preventDefault();
                     openArticle(visible[index]);
                 });
             });
-
-            // Show Load More if there are more local posts OR more RTU pages
-            loadMore.style.display = (filtered.length > visibleCount || (!noMorePages && currentFeedPage < MAX_FEED_PAGES)) ?
-                'flex' : 'none';
         }
 
         function buildCard(post) {
@@ -292,20 +191,19 @@ $topbar_search_mode = "local";
             const thumb = post.thumbnail ?
                 `<img src="${escHtml(post.thumbnail)}" alt="Thumb" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'card-thumb-icon fa-solid fa-newspaper\\'></i>'">` :
                 `<i class="card-thumb-icon fa-solid fa-newspaper"></i>`;
-
             return `
-            <a class="update-card" href="${escHtml(post.url)}">
-                <div class="card-thumb">${thumb}</div>
-                <div class="card-body">
-                    <div class="card-meta">
-                        <span class="category-badge ${catClass}">${catLabel}</span>
-                        <span class="card-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>
+                <a class="update-card" href="${escHtml(post.url)}">
+                    <div class="card-thumb">${thumb}</div>
+                    <div class="card-body">
+                        <div class="card-meta">
+                            <span class="category-badge ${catClass}">${catLabel}</span>
+                            <span class="card-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>
+                        </div>
+                        <div class="card-title-text">${escHtml(post.title)}</div>
+                        <p class="card-excerpt">${escHtml(post.excerpt || '')}</p>
+                        <div class="card-footer">Read more <i class="fa-solid fa-arrow-right"></i></div>
                     </div>
-                    <div class="card-title-text">${escHtml(post.title)}</div>
-                    <p class="card-excerpt">${escHtml(post.excerpt || '')}</p>
-                    <div class="card-footer">Read more <i class="fa-solid fa-arrow-right"></i></div>
-                </div>
-            </a>`;
+                </a>`;
         }
 
         window.openArticle = function(post) {
@@ -316,10 +214,9 @@ $topbar_search_mode = "local";
 
             document.getElementById('articleTitle').textContent = post.title;
             document.getElementById('articleOriginalLink').href = post.url;
-
             document.getElementById('articleMeta').innerHTML = `
-            <span class="category-badge ${catClass}">${catLabel}</span>
-            <span class="article-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>`;
+                <span class="category-badge ${catClass}">${catLabel}</span>
+                <span class="article-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>`;
 
             if (post.thumbnail) {
                 heroImg.innerHTML = `<img src="${escHtml(post.thumbnail)}" alt="Hero">`;
@@ -357,5 +254,4 @@ $topbar_search_mode = "local";
         }
     </script>
 </body>
-
 </html>
