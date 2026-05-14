@@ -15,6 +15,7 @@ $feed_sources = getenv('RTU_RSS_FEEDS') ?: 'https://www.rtu.edu.ph/feed/,https:/
 $feed_urls    = array_map('trim', explode(',', $feed_sources));
 $cache_ttl    = (int)(getenv('RTU_CACHE_TTL') ?: 900);
 $cache_file   = sys_get_temp_dir() . '/talaaral_rtu_cache.json';
+$is_preview   = isset($_GET['preview']) && $_GET['preview'] === '1';
 
 function fetch_rss_raw(string $url): string|false
 {
@@ -147,7 +148,8 @@ if (file_exists($cache_file)) {
 }
 
 if ($cache_ttl > 0 && !empty($cached_items) && (time() - filemtime($cache_file)) < $cache_ttl) {
-    echo json_encode($cached_items);
+    $limit = $is_preview ? 4 : 50;
+    echo json_encode(array_slice($cached_items, 0, $limit));
     exit;
 }
 
@@ -174,4 +176,5 @@ if (!empty($merged)) {
     file_put_contents($cache_file, json_encode($merged));
 }
 
-echo json_encode($merged);
+$limit = $is_preview ? 4 : 50;
+echo json_encode(array_slice($merged, 0, $limit));
