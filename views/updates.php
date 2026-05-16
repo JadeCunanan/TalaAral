@@ -170,25 +170,20 @@ $topbar_search_mode = "local";
                 .then(r => r.json())
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
-                        // In loadAnnouncements() function, update this part:
                         const announcements = data.map(a => {
                             let thumbnailUrl = a.image_url || '';
-
+                            
                             // Handle JSON array of images
                             if (thumbnailUrl.startsWith('[')) {
                                 const images = JSON.parse(thumbnailUrl);
                                 thumbnailUrl = images[0]; // Use first image as card thumbnail
                             }
-
+                            
                             return {
                                 id: 'ann_' + a.id,
                                 title: a.title,
                                 url: '#',
-                                date: new Date(a.posted_at).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                }),
+                                date: new Date(a.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                                 timestamp: new Date(a.posted_at).getTime() / 1000,
                                 category: 'announcement',
                                 excerpt: a.message,
@@ -313,5 +308,4 @@ $topbar_search_mode = "local";
         }
     </script>
 </body>
-
 </html>
