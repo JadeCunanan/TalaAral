@@ -100,6 +100,8 @@ $topbar_search_mode = "local";
         let visibleCount = 9;
         let currentSearchQuery = "";
         const PAGE_SIZE = 9;
+        let newsLoaded = false;
+        let announcementsLoaded = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -107,6 +109,7 @@ $topbar_search_mode = "local";
             }, 100);
 
             loadUpdates();
+            loadAnnouncements();
 
             document.addEventListener('pageSearch', (e) => {
                 currentSearchQuery = e.detail.toLowerCase();
@@ -131,20 +134,24 @@ $topbar_search_mode = "local";
             });
         });
 
+        function checkAllLoaded() {
+            if (newsLoaded && announcementsLoaded) {
+                document.getElementById('skeletonGrid').style.display = 'none';
+                document.getElementById('updatesGrid').style.display = 'grid';
+                allPosts.sort((a, b) => b.timestamp - a.timestamp);
+                applyFilters();
+            }
+        }
+
         function loadUpdates() {
             fetch('/backend/api/get_rtu_updates.php')
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('skeletonGrid').style.display = 'none';
-                    document.getElementById('updatesGrid').style.display = 'grid';
-
-                    if (data.error || !Array.isArray(data) || data.length === 0) {
-                        document.getElementById('updatesGrid').innerHTML = emptyState('No updates found.', 'fa-bullhorn');
-                        return;
+                    if (Array.isArray(data) && data.length > 0) {
+                        allPosts = [...allPosts, ...data];
                     }
-
-                    allPosts = data;
-                    applyFilters();
+                    newsLoaded = true;
+                    checkAllLoaded();
 
                     const openUrl = new URLSearchParams(window.location.search).get('open');
                     if (openUrl) {
@@ -153,8 +160,37 @@ $topbar_search_mode = "local";
                     }
                 })
                 .catch(() => {
-                    document.getElementById('skeletonGrid').style.display = 'none';
-                    document.getElementById('updatesGrid').innerHTML = emptyState('Connection error.', 'fa-triangle-exclamation');
+                    newsLoaded = true;
+                    checkAllLoaded();
+                });
+        }
+
+        function loadAnnouncements() {
+            fetch('/backend/api/get_announcements.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        const announcements = data.map(a => ({
+                            id: 'ann_' + a.id,
+                            title: a.title,
+                            url: '#',
+                            date: new Date(a.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            timestamp: new Date(a.posted_at).getTime() / 1000,
+                            category: 'announcement',
+                            excerpt: a.message,
+                            thumbnail: a.image_url || '',
+                            content: `<p>${escHtml(a.message)}</p>`,
+                            likes: a.likes,
+                            shares: a.shares
+                        }));
+                        allPosts = [...allPosts, ...announcements];
+                    }
+                    announcementsLoaded = true;
+                    checkAllLoaded();
+                })
+                .catch(() => {
+                    announcementsLoaded = true;
+                    checkAllLoaded();
                 });
         }
 
@@ -191,8 +227,15 @@ $topbar_search_mode = "local";
             const thumb = post.thumbnail ?
                 `<img src="${escHtml(post.thumbnail)}" alt="Thumb" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'card-thumb-icon fa-solid fa-newspaper\\'></i>'">` :
                 `<i class="card-thumb-icon fa-solid fa-newspaper"></i>`;
+
+            const socialBar = post.category === 'announcement' ? `
+                <div class="card-social">
+                    <span><i class="fa-solid fa-thumbs-up"></i> ${post.likes || 0}</span>
+                    <span><i class="fa-solid fa-share"></i> ${post.shares || 0}</span>
+                </div>` : '';
+
             return `
-                <a class="update-card" href="${escHtml(post.url)}">
+                <a class="update-card ${post.category === 'announcement' ? 'announcement-card' : ''}" href="${escHtml(post.url)}">
                     <div class="card-thumb">${thumb}</div>
                     <div class="card-body">
                         <div class="card-meta">
@@ -201,7 +244,8 @@ $topbar_search_mode = "local";
                         </div>
                         <div class="card-title-text">${escHtml(post.title)}</div>
                         <p class="card-excerpt">${escHtml(post.excerpt || '')}</p>
-                        <div class="card-footer">Read more <i class="fa-solid fa-arrow-right"></i></div>
+                        ${socialBar}
+                        <div class="card-footer">${post.category === 'announcement' ? 'View post' : 'Read more'} <i class="fa-solid fa-arrow-right"></i></div>
                     </div>
                 </a>`;
         }
