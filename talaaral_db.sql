@@ -208,6 +208,28 @@ ALTER TABLE `tasks`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `fk_user_program` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+  -- --------------------------------------------------------
+-- Table structure for table `announcements`
+-- --------------------------------------------------------
+
+CREATE TABLE `announcements` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
+  `posted_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `likes` int DEFAULT '0',
+  `shares` int DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Sample announcements
+INSERT INTO `announcements` (`title`, `message`, `image_url`, `posted_at`, `likes`, `shares`) VALUES
+('Enrollment for 2nd Semester 2025-2026', 'The Office of the Registrar announces that enrollment for the 2nd Semester of Academic Year 2025-2026 will begin on June 2, 2026. Students are advised to settle all their accounts before enrolling. For more information, visit the registrar office or check the RTU official website.', NULL, '2026-05-10 08:00:00', 245, 87),
+('RTU Free Tutoring Program', 'The Academic Affairs Office is offering free tutoring sessions for all students who need academic assistance. Sessions are available Monday to Friday, 1:00 PM to 5:00 PM at the Learning Resource Center. Register now at the Dean of Students office.', NULL, '2026-05-08 10:30:00', 312, 134),
+('Scholarship Application Open', 'Applications for the CHED Scholarship Program for AY 2026-2027 are now open. Eligible students must have a GWA of 1.75 or better and must not be a recipient of any other scholarship. Submit requirements to the Scholarship Office on or before May 31, 2026.', NULL, '2026-05-05 09:00:00', 189, 56);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
