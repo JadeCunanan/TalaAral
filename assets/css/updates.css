@@ -421,15 +421,32 @@
 }
 
 .btn-read-original {
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
   background: rgba(0, 82, 255, 0.05);
   color: var(--navy-bright);
   border-radius: 6px;
   text-decoration: none;
   font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1;
   border: 1px solid rgba(0, 82, 255, 0.1);
   white-space: nowrap;
+}
+
+.btn-read-original i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 0.78rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .article-close-btn {
@@ -690,8 +707,16 @@
   }
 
   .btn-read-original {
+    min-height: 32px;
+    padding: 0 9px;
     font-size: 0.68rem;
-    padding: 5px 8px;
+    gap: 5px;
+  }
+
+  .btn-read-original i {
+    width: 13px;
+    height: 13px;
+    font-size: 0.72rem;
   }
 
   .article-date {
