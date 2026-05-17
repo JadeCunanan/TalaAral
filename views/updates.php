@@ -129,6 +129,7 @@ $topbar_search_mode = "local";
             document.getElementById('articleOverlay').addEventListener('click', function(e) {
                 if (e.target === this) closeArticle();
             });
+
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') closeArticle();
             });
@@ -150,6 +151,7 @@ $topbar_search_mode = "local";
                     if (Array.isArray(data) && data.length > 0) {
                         allPosts = [...allPosts, ...data];
                     }
+
                     newsLoaded = true;
                     checkAllLoaded();
 
@@ -171,58 +173,90 @@ $topbar_search_mode = "local";
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
                         const announcements = data.map(a => {
-                            let thumbnailUrl = a.image_url || '';
-                            
-                            // Handle JSON array of images
-                            if (thumbnailUrl.startsWith('[')) {
-                                const images = JSON.parse(thumbnailUrl);
-                                thumbnailUrl = images[0]; // Use first image as card thumbnail
-                            }
-                            
+                            const images = parseAnnouncementImages(a.image_url);
+                            const thumbnailUrl = images[0] || '';
+                            const message = a.message && a.message.trim() ? a.message.trim() : '';
+
                             return {
                                 id: 'ann_' + a.id,
-                                title: a.title,
+                                title: a.title || 'Untitled announcement',
                                 url: '#',
-                                date: new Date(a.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                date: new Date(a.posted_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                }),
                                 timestamp: new Date(a.posted_at).getTime() / 1000,
                                 category: 'announcement',
-                                excerpt: a.message,
+                                excerpt: message || a.title || '',
                                 thumbnail: thumbnailUrl,
-                                content: `<p>${escHtml(a.message)}</p>`,
+                                content: `
+                                    ${images.length ? `
+                                        <div class="announcement-images">
+                                            ${images.map(img => `<img src="${escHtml(img)}" alt="Announcement image">`).join('')}
+                                        </div>
+                                    ` : ''}
+                                    ${message ? `<p>${escHtml(message)}</p>` : ''}
+                                `,
                                 likes: a.likes,
                                 shares: a.shares
                             };
                         });
+
                         allPosts = [...allPosts, ...announcements];
                     }
+
                     announcementsLoaded = true;
                     checkAllLoaded();
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.error('Announcements failed:', err);
                     announcementsLoaded = true;
                     checkAllLoaded();
                 });
         }
 
+        function parseAnnouncementImages(value) {
+            if (!value) return [];
+
+            if (Array.isArray(value)) {
+                return value.filter(Boolean);
+            }
+
+            try {
+                const parsed = JSON.parse(String(value));
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch (e) {
+                console.error('Invalid announcement image_url:', value, e);
+                return [];
+            }
+        }
+
         function applyFilters() {
             const activeCat = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
+
             filtered = allPosts.filter(post => {
                 const matchCat = activeCat === 'all' || post.category === activeCat;
                 const matchSearch = post.title.toLowerCase().includes(currentSearchQuery) ||
                     (post.excerpt && post.excerpt.toLowerCase().includes(currentSearchQuery));
+
                 return matchCat && matchSearch;
             });
+
             renderGrid();
         }
 
         function renderGrid() {
             const grid = document.getElementById('updatesGrid');
+
             if (filtered.length === 0) {
                 grid.innerHTML = emptyState('No matches found.', 'fa-magnifying-glass');
                 return;
             }
+
             const visible = filtered.slice(0, visibleCount);
             grid.innerHTML = visible.map(post => buildCard(post)).join('');
+
             grid.querySelectorAll('.update-card').forEach((card, index) => {
                 card.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -290,6 +324,7 @@ $topbar_search_mode = "local";
         window.closeArticle = function() {
             document.getElementById('articleOverlay').classList.remove('active');
             document.body.style.overflow = '';
+
             const url = new URL(window.location.href);
             if (url.searchParams.has('open')) {
                 url.searchParams.delete('open');
@@ -308,4 +343,5 @@ $topbar_search_mode = "local";
         }
     </script>
 </body>
+
 </html>
