@@ -272,14 +272,32 @@ $topbar_search_mode = "local";
                 `<img src="${escHtml(post.thumbnail)}" alt="Thumb" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'card-thumb-icon fa-solid fa-newspaper\\'></i>'">` :
                 `<i class="card-thumb-icon fa-solid fa-newspaper"></i>`;
 
-            const socialBar = post.category === 'announcement' ? `
-                <div class="card-social">
-                    <span><i class="fa-solid fa-thumbs-up"></i> ${post.likes || 0}</span>
-                    <span><i class="fa-solid fa-share"></i> ${post.shares || 0}</span>
-                </div>` : '';
+            if (post.category === 'announcement') {
+                return `
+                    <a class="update-card announcement-card" href="${escHtml(post.url)}">
+                        <div class="card-body">
+                            <div class="card-meta">
+                                <span class="category-badge ${catClass}">${catLabel}</span>
+                                <span class="card-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>
+                            </div>
+                            <div class="card-title-text">${escHtml(post.title)}</div>
+                        </div>
+
+                        <div class="card-thumb">${thumb}</div>
+
+                        <div class="card-body">
+                            <p class="card-excerpt">${escHtml(post.excerpt || '')}</p>
+                            <div class="card-social">
+                                <span><i class="fa-solid fa-thumbs-up"></i> ${post.likes || 0}</span>
+                                <span><i class="fa-solid fa-share"></i> ${post.shares || 0}</span>
+                            </div>
+                            <div class="card-footer">View post <i class="fa-solid fa-arrow-right"></i></div>
+                        </div>
+                    </a>`;
+            }
 
             return `
-                <a class="update-card ${post.category === 'announcement' ? 'announcement-card' : ''}" href="${escHtml(post.url)}">
+                <a class="update-card" href="${escHtml(post.url)}">
                     <div class="card-thumb">${thumb}</div>
                     <div class="card-body">
                         <div class="card-meta">
@@ -288,8 +306,7 @@ $topbar_search_mode = "local";
                         </div>
                         <div class="card-title-text">${escHtml(post.title)}</div>
                         <p class="card-excerpt">${escHtml(post.excerpt || '')}</p>
-                        ${socialBar}
-                        <div class="card-footer">${post.category === 'announcement' ? 'View post' : 'Read more'} <i class="fa-solid fa-arrow-right"></i></div>
+                        <div class="card-footer">Read more <i class="fa-solid fa-arrow-right"></i></div>
                     </div>
                 </a>`;
         }
@@ -306,10 +323,11 @@ $topbar_search_mode = "local";
                 <span class="category-badge ${catClass}">${catLabel}</span>
                 <span class="article-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>`;
 
-            if (post.thumbnail) {
+            if (post.thumbnail && post.category !== 'announcement') {
                 heroImg.innerHTML = `<img src="${escHtml(post.thumbnail)}" alt="Hero">`;
                 heroImg.style.display = 'block';
             } else {
+                heroImg.innerHTML = '';
                 heroImg.style.display = 'none';
             }
 
