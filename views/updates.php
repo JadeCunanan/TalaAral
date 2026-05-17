@@ -79,7 +79,8 @@ $topbar_search_mode = "local";
                 <div class="article-modal-meta" id="articleMeta"></div>
                 <div class="article-modal-actions">
                     <a href="#" class="btn-read-original" id="articleOriginalLink" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Original
+                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        <span>Open Original</span>
                     </a>
                     <button class="article-close-btn" onclick="closeArticle()">
                         <i class="fa-solid fa-xmark"></i>
