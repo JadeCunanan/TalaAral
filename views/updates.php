@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$topbar_search_placeholder = "Search RTU news and articles...";
+$topbar_search_placeholder = "Search RTU news and announcements";
 $topbar_search_mode = "local";
 ?>
 <!DOCTYPE html>
