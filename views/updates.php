@@ -135,15 +135,10 @@ $topbar_search_mode = "local";
         });
 
         function checkAllLoaded() {
-            console.log('🔍 Checking if all loaded - News:', newsLoaded, 'Announcements:', announcementsLoaded);
-            console.log('📊 Total posts:', allPosts.length);
-            
             if (newsLoaded && announcementsLoaded) {
-                console.log('✅ All data loaded, sorting and displaying...');
                 document.getElementById('skeletonGrid').style.display = 'none';
                 document.getElementById('updatesGrid').style.display = 'grid';
                 allPosts.sort((a, b) => b.timestamp - a.timestamp);
-                console.log('📊 Sorted posts:', allPosts.length);
                 applyFilters();
             }
         }
@@ -171,34 +166,20 @@ $topbar_search_mode = "local";
         }
 
         function loadAnnouncements() {
-            console.log('🔄 Fetching announcements...');
             fetch('/backend/api/get_announcements.php')
                 .then(r => r.json())
                 .then(data => {
-                    console.log('✅ API Response:', data);
-                    console.log('📊 Total announcements from API:', data.length);
-                    
                     if (Array.isArray(data) && data.length > 0) {
                         const announcements = data.map(a => {
-                            console.log('Processing announcement:', a.id, a.title);
-                            
                             let thumbnailUrl = a.image_url || '';
-                            console.log('Raw image_url:', thumbnailUrl);
                             
                             // Handle JSON array of images
                             if (thumbnailUrl.startsWith('[')) {
-                                try {
-                                    const images = JSON.parse(thumbnailUrl);
-                                    console.log('✅ Parsed images array:', images);
-                                    thumbnailUrl = images[0]; // Use first image as card thumbnail
-                                    console.log('Using thumbnail:', thumbnailUrl);
-                                } catch (e) {
-                                    console.error('❌ Failed to parse image_url for', a.title, ':', e);
-                                    console.error('Problematic value:', thumbnailUrl);
-                                }
+                                const images = JSON.parse(thumbnailUrl);
+                                thumbnailUrl = images[0]; // Use first image as card thumbnail
                             }
                             
-                            const announcement = {
+                            return {
                                 id: 'ann_' + a.id,
                                 title: a.title,
                                 url: '#',
@@ -211,24 +192,13 @@ $topbar_search_mode = "local";
                                 likes: a.likes,
                                 shares: a.shares
                             };
-                            
-                            console.log('Created announcement object:', announcement);
-                            return announcement;
                         });
-                        
-                        console.log('📦 Total announcements mapped:', announcements.length);
                         allPosts = [...allPosts, ...announcements];
-                        console.log('📦 Total posts after adding announcements:', allPosts.length);
-                    } else {
-                        console.warn('⚠️ No announcements returned or invalid data');
                     }
-                    
                     announcementsLoaded = true;
-                    console.log('✅ Announcements loaded flag set');
                     checkAllLoaded();
                 })
-                .catch((error) => {
-                    console.error('❌ Failed to load announcements:', error);
+                .catch(() => {
                     announcementsLoaded = true;
                     checkAllLoaded();
                 });
@@ -236,22 +206,12 @@ $topbar_search_mode = "local";
 
         function applyFilters() {
             const activeCat = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
-            console.log('🔍 Filtering - Category:', activeCat, 'Search:', currentSearchQuery);
-            
             filtered = allPosts.filter(post => {
                 const matchCat = activeCat === 'all' || post.category === activeCat;
                 const matchSearch = post.title.toLowerCase().includes(currentSearchQuery) ||
                     (post.excerpt && post.excerpt.toLowerCase().includes(currentSearchQuery));
                 return matchCat && matchSearch;
             });
-            
-            console.log('📊 Filtered results:', filtered.length);
-            console.log('Breakdown by category:', {
-                all: allPosts.length,
-                news: allPosts.filter(p => p.category === 'news').length,
-                announcements: allPosts.filter(p => p.category === 'announcement').length
-            });
-            
             renderGrid();
         }
 
