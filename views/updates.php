@@ -180,7 +180,7 @@ $topbar_search_mode = "local";
                             return {
                                 id: 'ann_' + a.id,
                                 title: a.title || 'Untitled announcement',
-                                url: '#',
+                                url: a.source_url || '#',
                                 date: new Date(a.posted_at).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
@@ -314,11 +314,20 @@ $topbar_search_mode = "local";
         window.openArticle = function(post) {
             const overlay = document.getElementById('articleOverlay');
             const heroImg = document.getElementById('articleHeroImg');
+            const originalLink = document.getElementById('articleOriginalLink');
             const catClass = post.category === 'announcement' ? 'announcement' : 'news';
             const catLabel = post.category === 'announcement' ? 'Announcement' : 'News';
 
             document.getElementById('articleTitle').textContent = post.title;
-            document.getElementById('articleOriginalLink').href = post.url;
+
+            if (post.url && post.url !== '#') {
+                originalLink.href = post.url;
+                originalLink.style.display = 'inline-flex';
+            } else {
+                originalLink.href = '#';
+                originalLink.style.display = 'none';
+            }
+
             document.getElementById('articleMeta').innerHTML = `
                 <span class="category-badge ${catClass}">${catLabel}</span>
                 <span class="article-date"><i class="fa-solid fa-calendar-days"></i> ${escHtml(post.date)}</span>`;
