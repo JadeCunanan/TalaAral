@@ -1,6 +1,6 @@
 <?php
 $host = getenv('DB_HOST') ?: 'db'; 
-$port = getenv('DB_PORT') ?: '3306'; // This is the key line!
+$port = getenv('DB_PORT') ?: '3306'; 
 $db   = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASSWORD');
